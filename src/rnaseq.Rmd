@@ -1,0 +1,760 @@
+```{r, include = FALSE}
+#source("https://bioconductor.org/biocLite.R")
+#biocLite("DESeq2")
+#if (!requireNamespace("BiocManager", quietly = TRUE))
+#    install.packages("BiocManager")
+#install.packages("WGCNA") 
+#if (!requireNamespace('BiocManager', quietly = TRUE))
+#    install.packages('BiocManager')
+#BiocManager::install('apeglm')
+#BiocManager::install('EnhancedVolcano')
+#if (!requireNamespace("BiocManager", quietly = TRUE))
+#  install.packages("BiocManager")
+#BiocManager::install("EnhancedVolcano")%
+#ibrary(pathfindR)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+require(cowplot)
+theme_set(theme_cowplot())
+library(viridis)
+library(RColorBrewer)
+library(DESeq2)
+library(GenomicFeatures)
+library(apeglm)
+library(EnhancedVolcano)
+```
+
+```{r}
+# load in all sample files
+# note: one outlier sample was removed 7B_Index_09_control8 after visualizing PCA. If want to visualize it without that sample, do not run line of code where it removes file name from sampleFiles.
+
+directory <- "../raw_data/SxaQSEQsYB051L3L4L5L6_combined"
+sampleFiles <- (list.files(directory))
+sampleFiles <- sampleFiles[-33] # remove 7B_Index_09_control8
+
+# load in the gene key information
+key = read.table('../raw_data/ensembl84_info.txt', header = TRUE, sep = '\t', quote="", fill=FALSE, stringsAsFactors = FALSE)
+```
+
+```{r}
+# get gene lengths for downstream FPKM normalization
+gene_info = key %>% mutate(gene_length = Gene.End..bp. - Gene.Start..bp. + 1) %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name, gene_length) %>% distinct()
+```
+
+```{r}
+# create DESeq object
+sampleCondition <- sub("(.*treated).*","\\1",sampleFiles)
+sampleTable <- data.frame(sampleName = sampleFiles,
+                          fileName = sampleFiles,
+                          condition = sampleFiles)
+
+sampleTable <- sampleTable %>% 
+  separate(col = 'condition', into = c("exp", "index", "condition"), sep = "_", remove = F)
+sampleTable <- subset(sampleTable, select = -c(exp, index))
+sampleTable$condition <- gsub(".count", "", sampleTable$condition)
+sampleTable$condition <- gsub("control8", "0", sampleTable$condition)
+sampleTable$condition <- gsub("treated", "", sampleTable$condition)
+
+ddsHTSeq <- DESeqDataSetFromHTSeqCount(sampleTable = sampleTable,
+                                       directory = directory,
+                                       design = ~condition)
+
+#Set the reference group to 0 week
+ddsHTSeq$condition <- relevel(ddsHTSeq$condition, ref = "0")
+
+#Filter out reads whose row sums are less than 10
+ddsHTSeq <- ddsHTSeq[rowSums(counts(ddsHTSeq))>=10,]
+
+# Run DESeq
+dds <- DESeq(ddsHTSeq)
+```
+
+```{r}
+# Figure 3A: PCA of variance-stabilized transform data
+vsd = vst(dds)
+levels(vsd$condition) = c("CHOW8", "WD2", "WD4", "WD6", "WD8")
+plotPCA(vsd) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'), name = "Treatment")
+ggsave('../figures/rnaseq_pca.pdf', height = 5, width = 6)
+```
+
+```{r}
+# checking normalized data
+raw <- reshape2::melt(assay(dds))
+colnames(raw) <- c("Gene","Sample","Expression")
+ggplot(raw, aes(x=Sample, y=Expression)) + geom_violin() + theme(axis.text.x = element_text(angle=45, hjust=1))
+
+matrix <- reshape2::melt(assay(vsd))
+colnames(matrix) <- c("Gene","Sample","Expression")
+ggplot(matrix, aes(x=Sample, y=Expression)) + geom_violin() + theme(axis.text.x = element_text(angle=45, hjust=1))
+```
+
+```{r}
+# get total # significant genes, up-regulated and down-regulated that were q < 0.05 for all diet condition comparisons
+comparisons = list(list("0", "2"), list("0", "4"), list("0", "6"), list("0", "8"), list("2", "4"), list("2", "6"), list("2", "8"), list("4", "6"), list("4", "8"), list("6", "8"))
+table = data.frame("Condition1" = integer(), "Condition2" = integer(), "Total" = integer(), "Up" = integer(), "Down" = integer(), stringsAsFactors = FALSE)
+for(i in 1:10) {
+  res = results(dds, contrast = c("condition", as.numeric(comparisons[[i]][1]), as.numeric(comparisons[[i]][2])))
+  total = nrow(as.data.frame(subset(res, padj < 0.05)))
+  up = nrow(filter(as.data.frame(subset(res, padj < 0.05)), log2FoldChange > 0))
+  down = nrow(filter(as.data.frame(subset(res, padj < 0.05)), log2FoldChange < 0))
+  if(up + down != total) {
+    print("ERROR: # sig up/down-regulated genes does not add up to total.")
+  }
+  data_entry = data.frame("Condition1" = as.numeric(comparisons[[i]][1]), "Condition2" = as.numeric(comparisons[[i]][2]), "Total" = total, "Up" = up, "Down" = down, stringsAsFactors = FALSE)
+  table = rbind(table, data_entry)
+}
+```
+
+```{r}
+# heatmaps of significantly differentially-expressed genes
+a <- table %>% ggplot(aes(x = Condition1, y = Condition2)) + geom_tile(aes(fill = Total), color = 'black', size = 0.5, alpha = 0.9) +
+  scale_fill_viridis() + scale_x_continuous(breaks=seq(0,8,2)) + scale_y_continuous(breaks=seq(0,8,2)) + labs(x = "Weeks on Western Diet", y = "Weeks on Western Diet", title = "Total") + geom_text(aes(label = Total), size = 6) + theme(legend.position = "none")
+
+b <- table %>% ggplot(aes(x = Condition1, y = Condition2)) + geom_tile(aes(fill = Up), color = 'black', size = 0.5, alpha = 0.9) +
+  scale_fill_viridis() + scale_x_continuous(breaks=seq(0,8,2)) + scale_y_continuous(breaks=seq(0,8,2)) + labs(x = "Weeks on Western Diet", y = "Weeks on Western Diet", title = "Up-regulated") + geom_text(aes(label = Up), size = 6) + theme(legend.position = "none")
+
+c <- table %>% ggplot(aes(x = Condition1, y = Condition2)) + geom_tile(aes(fill = Down), color = 'black', size = 0.5, alpha = 0.9) +
+  scale_fill_viridis() + scale_x_continuous(breaks=seq(0,8,2)) + scale_y_continuous(breaks=seq(0,8,2)) + labs(x = "Weeks on Western Diet", y = "Weeks on Western Diet", title = "Down-regulated") + geom_text(aes(label = Down), size = 6) + theme(legend.position = "none")
+
+plot_grid(a,b,c, ncol = 3)
+ggsave('../figures/rnaseq_pairwise_de_genes_heatmap.pdf', height = 5, width = 13)
+rm(a,b,c)
+```
+
+```{r}
+### generate all volcano plots. We use ashr to shrink fold-changes.
+mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% distinct()
+
+# 2 vs 0
+res = lfcShrink(dds, contrast = c("condition", "2","0"), type = 'ashr')
+annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 60), title = 'CHOW versus WD2', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
+ggsave('../supp_figs/Volcano/0vs2.pdf', height = 8.5, width = 6.5)
+ggsave('../main_figs/Fig3C.pdf', height = 8.5, width = 6.5)
+
+# 4 vs 0
+res = lfcShrink(dds, contrast = c("condition", "4","0"), type = 'ashr')
+annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 40), title = 'CHOW versus WD4', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
+ggsave('../supp_figs/Volcano/0vs4.pdf', height = 8.5, width = 6.5)
+
+# 6 vs 0
+res = lfcShrink(dds, contrast = c("condition", "6","0"), type = 'ashr')
+annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 55), title = 'CHOW versus WD6', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
+ggsave('../supp_figs/Volcano/0vs6.pdf', height = 8.5, width = 6.5)
+
+# 8 vs 0
+res = lfcShrink(dds, contrast = c("condition", "8","0"), type = 'ashr')
+annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 55), title = 'CHOW versus WD8', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
+ggsave('../supp_figs/Volcano/0vs8.pdf', height = 8.5, width = 6.5)
+
+# 4 vs. 2
+res = lfcShrink(dds, contrast = c("condition", "4","2"), type = 'ashr')
+annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 7.5), title = 'WD2 versus WD4', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
+ggsave('../supp_figs/Volcano/2vs4.pdf', height = 8.5, width = 6.5)
+
+# 6 vs. 2
+res = lfcShrink(dds, contrast = c("condition", "6","2"), type = 'ashr')
+annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 10), title = 'WD2 versus WD6', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
+ggsave('../supp_figs/Volcano/2vs6.pdf', height = 8.5, width = 6.5)
+
+# 8 vs. 2
+res = lfcShrink(dds, contrast = c("condition", "8","2"), type = 'ashr')
+annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 12.5), title = 'WD2 versus WD8', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
+ggsave('../supp_figs/Volcano/2vs8.pdf', height = 8.5, width = 6.5)
+ggsave('../main_figs/Fig3D.pdf', height = 8.5, width = 6.5)
+
+# 6 vs. 4
+res = lfcShrink(dds, contrast = c("condition", "6","4"), type = 'ashr')
+annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 5), title = 'WD4 versus WD6', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
+ggsave('../supp_figs/Volcano/4vs6.pdf', height = 8.5, width = 6.5)
+
+# 8 vs. 4
+res = lfcShrink(dds, contrast = c("condition", "8","4"), type = 'ashr')
+annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 5), title = 'WD4 versus WD8', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
+ggsave('../supp_figs/Volcano/4vs8.pdf', height = 8.5, width = 6.5)
+
+# 8 vs. 6
+res = lfcShrink(dds, contrast = c("condition", "8","6"), type = 'ashr')
+annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-1, 1), ylim = c(0, 3), title = 'WD6 versus WD8', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.5, pointSize = 2.0)
+ggsave('../supp_figs/Volcano/6vs8.pdf', height = 8.5, width = 6.5)
+```
+
+```{r}
+### Classify into 4 different patterns
+### DE means padj < 0.05 and |LFC| > 1
+# =========================================
+# 1: not DE between 02, not DE between 08
+# 2: DE between 02, not DE between 08
+# 3: DE between 02, DE between 08
+# 4: not DE between 02, DE between 08
+mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% distinct()
+
+res02 = lfcShrink(dds, contrast = c("condition", "2","0"), type = 'ashr')
+genes02 = as.data.frame(res02) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID") %>% mutate(DE_02 = ifelse(padj < 0.05 & abs(log2FoldChange) > 1, "yes", "no")) %>% dplyr::select(Associated.Gene.Name, DE_02)
+
+res28 = lfcShrink(dds, contrast = c("condition", "8","2"), type = 'ashr')
+genes28 = as.data.frame(res28) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID") %>% mutate(DE_28 = ifelse(padj < 0.05 & abs(log2FoldChange) > 1, "yes", "no")) %>% dplyr::select(Associated.Gene.Name, DE_28)
+
+class_df = cbind(genes02, genes28) %>% dplyr::select(-3) %>% 
+  mutate(class = ifelse(DE_02 == 'yes' & DE_28 == 'no', 'uniq_02',
+                 ifelse(DE_02 == 'no' & DE_28 == 'yes', 'uniq_28',
+                 ifelse(DE_02 == 'yes' & DE_28 == 'yes', 'both', 'none'))))
+
+nrow(filter(class_df, class == 'uniq_02')) # 127
+nrow(filter(class_df, class == 'uniq_28')) # 117
+nrow(filter(class_df, class == 'both')) # 19
+nrow(filter(class_df, class == 'none')) # 22478
+```
+
+```{r}
+# lets look at these genes more closely, but first, get FPKM measurements for each gene.
+
+if(FALSE) {
+  ordered_geneLength = data.frame("Ensembl.Gene.ID" = rownames(assay(dds)), stringsAsFactors = FALSE) %>% 
+    left_join(., gene_info, by = "Ensembl.Gene.ID")
+  mcols(dds)$basepairs = ordered_geneLength$gene_length 
+  fpkm_dds <- fpkm(dds)
+  write.table(fpkm_dds, '../processed_data/data_tables/RNA-seq-FPKM.txt')
+}
+
+fpkm_dds = read.table('../processed_data/data_tables/RNA-seq-FPKM.txt', header = TRUE, check.names = FALSE)
+
+all_genes <- as.data.frame(fpkm_dds) %>% 
+  tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>%
+  left_join(., gene_info, by = "Ensembl.Gene.ID") %>%
+  dplyr::select(-c("Ensembl.Gene.ID", "gene_length")) %>%
+  distinct(Associated.Gene.Name, .keep_all = TRUE) %>%
+  tibble::column_to_rownames(var = "Associated.Gene.Name") %>%
+  t() %>% as.data.frame()
+write.csv(all_genes, '../processed_data/data_tables/RNA-seq-FPKM-with-gene-names.csv')
+```
+
+```{r}
+# output genes that are significantly DE between 02 and 28,
+#                                        exclusively between 02
+#                                        exclusively between 28
+# create lists for pathway analysis
+# GO Term and KEGG pathway enrichment performed using STRING v11
+
+both = all_genes %>% dplyr::select(filter(class_df, class == 'both')$Associated.Gene.Name) %>%
+  tibble::rownames_to_column(var = "sample_ID") %>% 
+  separate(col = 'sample_ID', into = c("exp", "index", "condition"), sep = "_", remove = F) %>% dplyr::select(-exp, -index)
+write.csv(both, '../processed_data/gene_lists/02_and_28_list.csv', quote = F)
+write.table(filter(class_df, class == 'both')$Associated.Gene.Name, '../processed_data/gene_lists/02_and_28_genes.txt', quote = F, row.names = F, col.names = F)
+
+uniq_02 = all_genes %>% dplyr::select(filter(class_df, class == 'uniq_02')$Associated.Gene.Name) %>%
+  tibble::rownames_to_column(var = "sample_ID") %>% 
+  separate(col = 'sample_ID', into = c("exp", "index", "condition"), sep = "_", remove = F) %>% dplyr::select(-exp, -index)
+write.csv(uniq_02, '../processed_data/gene_lists/02_list.csv', quote = F)
+write.table(filter(class_df, class == 'uniq_02')$Associated.Gene.Name, '../processed_data/gene_lists/02_genes.txt', quote = F, row.names = F, col.names = F)
+
+uniq_28 = all_genes %>% dplyr::select(filter(class_df, class == 'uniq_28')$Associated.Gene.Name) %>%
+  tibble::rownames_to_column(var = "sample_ID") %>% 
+  separate(col = 'sample_ID', into = c("exp", "index", "condition"), sep = "_", remove = F) %>% dplyr::select(-exp, -index)
+write.csv(uniq_28, '../processed_data/gene_lists/28_list.csv', quote = F)
+write.table(filter(class_df, class == 'uniq_28')$Associated.Gene.Name, '../processed_data/gene_lists/28_genes.txt', quote = F, row.names = F, col.names = F)
+```
+
+```{r}
+# lets look at genes that are DE between 02 and 28
+all_genes %>% dplyr::select(filter(class_df, class == 'both')$Associated.Gene.Name) %>%
+  tibble::rownames_to_column(var = "sample_ID") %>% 
+  separate(col = 'sample_ID', into = c("exp", "index", "condition"), sep = "_", remove = F) %>% dplyr::select(-exp, -index) %>%
+  gather(Feature, Value, 3:ncol(.)) %>% 
+  ggplot(aes(y = log10(Value+1), x = condition)) + geom_boxplot(outlier.shape = NA) + 
+  geom_jitter(aes(color = condition), alpha = 0.7) +
+  scale_color_viridis(discrete = TRUE) +
+  facet_wrap(~Feature, scales = 'free') + 
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank()) + 
+  labs(y = 'log10(FPKM + 1)')
+```
+
+```{r}
+all_genes %>% dplyr::select(Lpin1, Osbpl3, Sulf2, Abcd1, Cfd, C8a, C8b) %>%
+  tibble::rownames_to_column(var = "sample_ID") %>% 
+  separate(col = 'sample_ID', into = c("exp", "index", "condition"), sep = "_", remove = F) %>% dplyr::select(-exp, -index) %>%
+  gather(Feature, Value, 3:ncol(.)) %>% 
+  ggplot(aes(y = log10(Value+1), x = condition)) + geom_boxplot(outlier.shape = NA) + 
+  geom_jitter(aes(color = condition), alpha = 0.7) +
+  scale_color_viridis(discrete = TRUE) +
+  facet_wrap(~Feature, scales = 'free') + 
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank()) + 
+  labs(y = 'log10(FPKM + 1)')
+ggsave('../supp_figs/val_gene_fpkm.pdf', height = 5, width = 7.5)
+```
+
+
+# RELEVANT ANALYSIS ENDS HERE ===========================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+# all differentially expressed genes between 0 and 8, for pathway enrichment analysis using KEGG.
+
+#res = results(dds, contrast = c("condition", "8", "0"))
+#mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% distinct()
+#genes = as.data.frame(subset(res, padj < 0.05)) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID") %>% dplyr::select(Associated.Gene.Name)
+#write.table(genes, '~/Desktop/ETV007/processed_data/08_DEGenes.txt', quote = FALSE, row.names = FALSE, col.names = FALSE)
+
+#res = lfcShrink(dds, contrast = c("condition", "2", "0"))
+#mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% distinct()
+#genes = as.data.frame(subset(res, padj < 0.05 & (log2FoldChange > log2(1.5) | log2FoldChange < -1))) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID") %>% dplyr::select(Associated.Gene.Name)
+#write.table(genes, '~/Desktop/ETV007/processed_data/02_DEGenes.txt', quote = FALSE, row.names = FALSE, col.names = FALSE)
+
+#res = lfcShrink(dds, contrast = c("condition", "8", "2"))
+#mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% distinct()
+#genes = as.data.frame(subset(res, padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1))) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID") %>% dplyr::select(Associated.Gene.Name) 
+#write.table(genes, '~/Desktop/ETV007/processed_data/28_DEGenes.txt', quote = FALSE, row.names = FALSE, col.names = FALSE)
+
+#res = results(dds, contrast = c("condition", "2", "0"))
+#mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% distinct()
+#genes = as.data.frame(subset(res, padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1))) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID") %>% dplyr::select(Associated.Gene.Name)
+#write.table(genes, '~/Desktop/ETV007/processed_data/02_DEGenes_noShrink.txt', quote = FALSE, row.names = FALSE, col.names = FALSE)
+
+#res = results(dds, contrast = c("condition", "8", "2"))
+#mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% distinct()
+#genes = as.data.frame(subset(res, padj < 0.05 & (log2FoldChange > 1 | log2FoldChange < -1))) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID") %>% dplyr::select(Associated.Gene.Name) 
+#write.table(genes, '~/Desktop/ETV007/processed_data/28_DEGenes_noShrink.txt', quote = FALSE, row.names = FALSE, col.names = FALSE)
+
+res = lfcShrink(dds, contrast = c("condition", "2", "0"))
+mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% distinct()
+genes = as.data.frame(subset(res, padj < 0.05 & (log2FoldChange > log2(1.5) | log2FoldChange < -log2(1.5)))) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID") %>% dplyr::select(Associated.Gene.Name)
+write.table(genes, '~/Desktop/ETV007/processed_data/02_DEGenes_FC1.5.txt', quote = FALSE, row.names = FALSE, col.names = FALSE)
+
+res = lfcShrink(dds, contrast = c("condition", "8", "2"))
+mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% distinct()
+genes = as.data.frame(subset(res, padj < 0.05 & (log2FoldChange > log2(1.5) | log2FoldChange < -log2(1.5)))) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID") %>% dplyr::select(Associated.Gene.Name) 
+write.table(genes, '~/Desktop/ETV007/processed_data/28_DEGenes_FC1.5.txt', quote = FALSE, row.names = FALSE, col.names = FALSE)
+```
+
+```{r}
+# Differential Expression Analysis 
+# Comparisons between conditions (CHOW vs. WD8)
+# Shrinkage controls for less abundant genes that have high variability (and therefore deceptively high fold-change). It is a conservative estimate. 
+mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% distinct()
+
+res <- results(dds, contrast = c("condition", "8","0"))
+res08 <- lfcShrink(dds, coef = 2, type = 'apeglm')
+
+annotation08 = data.frame("Ensembl.Gene.ID" = rownames(res08), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res08, lab = annotation08$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), title = 'CHOW versus WD8', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.5, pointSize = 2.0) #ggsave('~/Desktop/ETV007/Figures/volcano0vs8.png', height = 6, width = 7)
+
+res02 <- lfcShrink(dds, contrast = c("condition", "2","0"))
+annotation02 = data.frame("Ensembl.Gene.ID" = rownames(test), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(test, lab = annotation02$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), title = 'CHOW versus WD2', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.9)
+ggsave('~/Desktop/ETV007/Figures/volcano0vs2.png', height = 6, width = 7)
+
+res04 <- lfcShrink(dds, contrast = c("condition", "4","0"))
+annotation04 = data.frame("Ensembl.Gene.ID" = rownames(res04), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res04, lab = annotation04$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), title = 'CHOW versus WD4', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.9)
+ggsave('~/Desktop/ETV007/Figures/volcano0vs4.png', height = 6, width = 7)
+
+res06 <- lfcShrink(dds, contrast = c("condition", "6","0"))
+annotation06 = data.frame("Ensembl.Gene.ID" = rownames(res06), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res06, lab = annotation06$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), title = 'CHOW versus WD6', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.9)
+ggsave('~/Desktop/ETV007/Figures/volcano0vs6.png', height = 6, width = 7)
+
+res24 <- lfcShrink(dds, contrast = c("condition", "4","2"))
+annotation24 = data.frame("Ensembl.Gene.ID" = rownames(res24), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res24, lab = annotation24$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-1.2, 1.2), ylim = c(0, 6), title = 'WD2 versus WD4', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.9)
+ggsave('~/Desktop/ETV007/Figures/volcano2vs4.png', height = 6, width = 7)
+
+res26 <- lfcShrink(dds, contrast = c("condition", "6","2"))
+annotation26 = data.frame("Ensembl.Gene.ID" = rownames(res26), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res26, lab = annotation26$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-2, 2), ylim = c(0, 10), title = 'WD2 versus WD6', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.9)
+ggsave('~/Desktop/ETV007/Figures/volcano2vs6.png', height = 6, width = 7)
+
+res28 <- lfcShrink(dds, contrast = c("condition", "8","2"))
+annotation28 = data.frame("Ensembl.Gene.ID" = rownames(res28), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res28, lab = annotation28$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-2, 2), ylim = c(0, 16), title = 'WD2 versus WD8', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.9)
+ggsave('~/Desktop/ETV007/Figures/volcano2vs8.png', height = 6, width = 7)
+
+res46 <- lfcShrink(dds, contrast = c("condition", "6","4"))
+annotation46 = data.frame("Ensembl.Gene.ID" = rownames(res46), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res46, lab = annotation46$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-2.2, 2.2), ylim = c(0, 5), title = 'WD4 versus WD6', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.9)
+ggsave('~/Desktop/ETV007/Figures/volcano4vs6.png', height = 6, width = 7)
+
+res48 <- lfcShrink(dds, contrast = c("condition", "8","4"))
+annotation48 = data.frame("Ensembl.Gene.ID" = rownames(res48), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res48, lab = annotation48$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-1.3, 1.3), ylim = c(0, 5), title = 'WD4 versus WD8', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.9)
+ggsave('~/Desktop/ETV007/Figures/volcano4vs8.png', height = 6, width = 7)
+
+res68 <- lfcShrink(dds, contrast = c("condition", "8","6"))
+annotation68 = data.frame("Ensembl.Gene.ID" = rownames(res68), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+EnhancedVolcano(res68, lab = annotation68$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-1.5, 1.5), ylim = c(0, 1.5), title = 'WD6 versus WD8', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.9)
+ggsave('~/Desktop/ETV007/Figures/volcano6vs8.png', height = 6, width = 7)
+
+rm(res02,res04,res06,res08,res24,res26,res28,res46,res48,res68)
+rm(annotation02, annotation04, annotation06, annotation08, annotation24, annotation26, annotation28, annotation46, annotation48, annotation68)
+```
+
+```{r}
+# normalized data to fpkm
+ordered_geneLength = data.frame("Ensembl.Gene.ID" = rownames(assay(dds)), stringsAsFactors = FALSE) %>% left_join(., gene_info, by = "Ensembl.Gene.ID")
+mcols(dds)$basepairs = ordered_geneLength$gene_length 
+fpkm_dds <- fpkm(dds)
+write.table(fpkm_dds, '~/Desktop/ETV007/processed_data/RNA-seq-FPKM.txt')
+```
+
+```{r}
+fpkm_dds = read.table('~/Desktop/ETV007/processed_data/RNA-seq-FPKM.txt', header = TRUE, check.names = FALSE)
+
+# all genes in a matrix format, FPM values, map to real gene names
+all_genes <- as.data.frame(fpkm_dds) %>% 
+  tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>%
+  left_join(., gene_info, by = "Ensembl.Gene.ID") %>%
+  dplyr::select(-c("Ensembl.Gene.ID", "gene_length")) %>%
+  distinct(Associated.Gene.Name, .keep_all = TRUE) %>%
+  tibble::column_to_rownames(var = "Associated.Gene.Name") %>%
+  t() %>% as.data.frame()
+```
+
+```{r}
+genes_to_view = c("Cd36", "Lgals1", "Osbpl3", "Cidec", "Slc17a4", "Gm10680", "Apoa4", "Tbc1d31", "Anxa2", "Plscr4", "Rmdn3", "Sulf2", "Atp9a", "Siae", "Aldh3a2", "Fabp2", "Abcd1")
+genes_to_view = c("Pros1", "Serping1", "Cpn1", "Masp1", "Masp2", "Fhl1")
+
+all_genes %>% dplyr::select(any_of(genes_to_view)) %>% tibble::rownames_to_column(var = "sample_ID") %>%
+  separate(col = 'sample_ID', into = c("exp", "index", "condition"), sep = "_", remove = F) %>% dplyr::select(-exp, -index) %>%
+  gather(Feature, Value, 3:ncol(.)) %>% 
+  ggplot(aes(y = log10(Value+1), x = condition)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = condition), alpha = 0.7) +
+  scale_color_viridis(discrete = TRUE) +
+  facet_wrap(~Feature, scales = 'free') + 
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank()) + 
+  labs(y = 'log10(FPKM + 1)')
+
+
+```
+
+```{r}
+complement = mapping %>% filter(grepl("complement ", mapping$Description))
+comp_fpkm = all_genes %>% dplyr::select(any_of(complement$Associated.Gene.Name))
+comp_fpkm %>% tibble::rownames_to_column(var = "sample_ID") %>% 
+  separate(col = 'sample_ID', into = c("exp", "index", "condition"), sep = "_", remove = F) %>% dplyr::select(-exp, -index) %>%
+  gather(Feature, Value, 3:ncol(.)) %>% 
+  ggplot(aes(y = log10(Value+1), x = condition)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = condition), alpha = 0.7) +
+  scale_color_viridis(discrete = TRUE) +
+  facet_wrap(~Feature, scales = 'free') + 
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank()) + 
+  labs(y = 'log10(FPKM + 1)')
+```
+
+```{r}
+Cd59 = mapping %>% filter(grepl("Cd59", mapping$Associated.Gene.Name))
+Cd59_fpkm = all_genes %>% dplyr::select(any_of(Cd59$Associated.Gene.Name))
+
+Cd59_fpkm %>% tibble::rownames_to_column(var = "sample_ID") %>% 
+  separate(col = 'sample_ID', into = c("exp", "index", "condition"), sep = "_", remove = F) %>% dplyr::select(-exp, -index) %>%
+  gather(Feature, Value, 3:ncol(.)) %>% 
+  ggplot(aes(y = log10(Value+1), x = condition)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = condition), alpha = 0.7) +
+  scale_color_viridis(discrete = TRUE) +
+  facet_wrap(~Feature, scales = 'free') + 
+  theme(axis.title.x = element_blank(), axis.text.x = element_blank()) + 
+  labs(y = 'log10(FPKM + 1)')
+```
+
+```{r}
+# check why there were more differential expressed genes in WD2 vs. WD4
+mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name, Description) %>% distinct()
+res02 = results(dds, contrast = c("condition", "0", "2"))
+genes02 = as.data.frame(subset(res02, padj < 0.05)) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+
+res04 = results(dds, contrast = c("condition", "0", "4"))
+genes04 = as.data.frame(subset(res04, padj < 0.05)) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+
+res06 = results(dds, contrast = c("condition", "0", "6"))
+genes06 = as.data.frame(subset(res06, padj < 0.05)) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+
+res08 = results(dds, contrast = c("condition", "0", "8"))
+genes08 = as.data.frame(subset(res08, padj < 0.05)) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID")
+
+diff = data.frame("Associated.Gene.Name" = setdiff(genes02$Associated.Gene.Name, genes04$Associated.Gene.Name), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Associated.Gene.Name")
+diff2 = data.frame("Associated.Gene.Name" = setdiff(genes04$Associated.Gene.Name, genes02$Associated.Gene.Name), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Associated.Gene.Name")
+intersection = data.frame("Associated.Gene.Name" = intersect(genes04$Associated.Gene.Name, genes02$Associated.Gene.Name), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Associated.Gene.Name")
+union = data.frame("Associated.Gene.Name" = union(genes02$Associated.Gene.Name, genes04$Associated.Gene.Name), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Associated.Gene.Name")
+```
+
+```{r}
+# KEGG pathway enrichment for 02 and 28 (FC > 1.5) comparisons
+kegg_02 = read.table('~/Desktop/ETV007/processed_data/enrichment.KEGG_02(FC>1.5).tsv', sep = '\t', header = FALSE, stringsAsFactors = FALSE)
+kegg_28 = read.table('~/Desktop/ETV007/processed_data/enrichment.KEGG_28(FC>1.5).tsv', sep = '\t', header = FALSE, stringsAsFactors = FALSE)
+
+# KEGG pathways that are enriched in both cases
+intersection = data.frame("Pathways" = intersect(kegg_02$V2, kegg_28$V2), stringsAsFactors = FALSE)
+
+`%notin%` <- Negate(`%in%`)
+unique_02 = kegg_02 %>% filter(V2 %notin% intersection$Pathways) %>% dplyr::select(-c(V1, V6))
+unique_28 = kegg_28 %>% filter(V2 %notin% intersection$Pathways) %>% dplyr::select(-c(V1, V6))
+
+write.csv(intersection, '~/Desktop/ETV007/processed_data/common_pathways.csv', row.names = FALSE, quote = FALSE)
+write.csv(unique_02, '~/Desktop/ETV007/processed_data/unique_path_02.csv', row.names = FALSE, quote = FALSE)
+write.csv(unique_28, '~/Desktop/ETV007/processed_data/unique_path_28.csv', row.names = FALSE, quote = FALSE)
+```
+
+```{r}
+intersect_subset = intersection %>% filter(Pathways %in% c("Steroid hormone biosynthesis", "Retinol metabolism", "Metabolism of xenobiotics by cytochrome P450", "Linoleic acid metabolism", "PPAR signaling pathway", "Arachidonic acid metabolism"))
+
+p1 <- rbind(filter(kegg_02, V2 %in% intersect_subset$Pathways) %>% mutate(Condition = '02'), filter(kegg_28, V2 %in% intersect_subset$Pathways) %>% mutate(Condition = '28')) %>%
+  ggplot(aes(x = reorder(V2, -log10(V5)), y = -log10(V5))) + geom_bar(aes(fill = Condition), stat = 'identity', position="dodge", color = 'black', alpha = 0.9) + scale_fill_manual(values = c('navy', 'orange')) + coord_flip() + labs(y = '-log10(P-value)') + theme(legend.position = 'none', axis.title.y = element_blank())
+
+p2 <- unique_02 %>% filter(V2 %in% c("Metabolic pathways", "Steroid biosynthesis", "Natural killer cell mediated cytotoxicity", "B cell receptor signaling pathway", "Bile secretion")) %>%
+  ggplot(aes(x = reorder(V2, -log10(V5)), y = -log10(V5))) + geom_bar(fill = 'navy', stat = 'identity', color = 'black', alpha = 0.9) + coord_flip() + labs(y = '-log10(P-value)') + theme(legend.position = 'none', axis.title.y = element_blank())
+
+p3 <- unique_28 %>% filter(V2 %in% c("Protein digestion and absorption", "Complement and coagulation cascades", "Biosynthesis of unsaturated fatty acids", "PI3K-Akt signaling pathway", "AMPK signaling pathway", "Fatty acid elongation", "TNF signaling pathway", "Cytokine-cytokine receptor interaction")) %>%
+  ggplot(aes(x = reorder(V2, -log10(V5)), y = -log10(V5))) + geom_bar(fill = 'orange', stat = 'identity', color = 'black', alpha = 0.9) + coord_flip() + labs(y = '-log10(P-value)') + theme(legend.position = 'none', axis.title.y = element_blank())
+
+plot_grid(p1, p2, p3, ncol = 3)
+ggsave('~/Desktop/ETV007/Figures/pathway_enrichment.pdf', height = 3, width = 15)
+```
+
+```{r}
+# looking at enrichment of Biological Process GO between 02 comparison and 28 comparison. 
+# Differentially expressed genes (FDR < 0.05, |log2SFC| > 1) for CHOW vs. WD2 and WD2 vs. WD8 were extracted and put into STRING to look for pathway enrichment.
+
+enrichment_02 = read.table('~/Desktop/ETV007/processed_data/enrichment_02.tsv', sep = '\t', header = FALSE, stringsAsFactors = FALSE)
+enrichment_28 = read.table('~/Desktop/ETV007/processed_data/enrichment_28.tsv', sep = '\t', header = FALSE, stringsAsFactors = FALSE)
+
+intersection = intersect(enrichment_02$V2, enrichment_28$V2) # processes that are enriched in both cases
+
+`%notin%` <- Negate(`%in%`)
+
+# filter out pathways that have more than 400 genes, tend to be too broad of a category to be of interest
+unique_02 = enrichment_02 %>% filter(V2 %notin% intersection) %>% filter(V4 < 400) %>%
+  filter(!grepl("herbicide", V2))
+unique_28 = enrichment_28 %>% filter(V2 %notin% intersection) %>% filter(V4 < 400) %>% 
+  filter(!grepl("neuron|axon|learning|taste|neuromuscular|memory", V2))
+```
+
+```{r}
+# all immune related genes from unique_02
+all_genes %>% select(Saa1, Saa2, Saa3, Elane, Orm2, Orm3, Raet1d, Raet1e) %>% tibble::rownames_to_column(var = "ID") %>%
+  separate(col = "ID", into = c("rep", "barcode", "treatment"), sep = "_", remove = TRUE) %>%
+  gather(Feature, Value, 4:11) %>%
+  ggplot(aes(x = treatment, y = Value)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = treatment)) + 
+  facet_wrap(~Feature, scales = 'free') +
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank()) +
+  scale_color_viridis(discrete = TRUE) +
+  labs(y = "FPKM")
+
+all_genes %>% select(Raet1d, Raet1e) %>% tibble::rownames_to_column(var = "ID") %>%
+  separate(col = "ID", into = c("rep", "barcode", "treatment"), sep = "_", remove = TRUE) %>%
+  gather(Feature, Value, 4:5) %>%
+  ggplot(aes(x = treatment, y = Value)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = treatment), size = 3, alpha = 0.9) + 
+  facet_wrap(~Feature, scales = 'free') + 
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank()) +
+  scale_color_viridis(discrete = TRUE) +
+  labs(y = "FPKM")
+ggsave('~/Desktop/ETV007/Figures/Raet.png', height = 3, width = 7)
+```
+
+```{r}
+all_genes %>% select(Cd36, Mogat1) %>% tibble::rownames_to_column(var = "ID") %>%
+  separate(col = "ID", into = c("rep", "barcode", "treatment"), sep = "_", remove = TRUE) %>%
+  gather(Feature, Value, 4:5) %>%
+  ggplot(aes(x = treatment, y = Value)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = treatment), size = 3, alpha = 0.9) + 
+  facet_wrap(~Feature, scales = 'free') + 
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank()) +
+  scale_color_viridis(discrete = TRUE) +
+  labs(y = "FPKM")
+ggsave('~/Desktop/ETV007/Figures/Mogat1.png', height = 3, width = 7)
+```
+
+```{r}
+all_genes %>% select(Cyp51, Hmgcs1, Idi1) %>% tibble::rownames_to_column(var = "ID") %>%
+  separate(col = "ID", into = c("rep", "barcode", "treatment"), sep = "_", remove = TRUE) %>%
+  gather(Feature, Value, 4:6) %>%
+  ggplot(aes(x = treatment, y = Value)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = treatment), size = 3, alpha = 0.9) + 
+  facet_wrap(~Feature, scales = 'free') + 
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank()) +
+  scale_color_viridis(discrete = TRUE) +
+  labs(y = "FPKM")
+ggsave('~/Desktop/ETV007/Figures/Cyp51.png', height = 3, width = 10.5)
+
+all_genes %>% dplyr::select(Cd27, Cd244, Nkg7, Ppard, Cd80, Cd68) %>% tibble::rownames_to_column(var = "ID") %>%
+  separate(col = "ID", into = c("rep", "barcode", "treatment"), sep = "_", remove = TRUE) %>%
+  gather(Feature, Value, 4:9) %>%
+  ggplot(aes(x = treatment, y = Value)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = treatment), size = 3, alpha = 0.9) + 
+  facet_wrap(~Feature, scales = 'free') + 
+  theme(axis.text.x = element_blank(),
+        axis.title.x = element_blank(),
+        axis.ticks.x = element_blank()) +
+  scale_color_viridis(discrete = TRUE) +
+  labs(y = "FPKM")
+ggsave('~/Desktop/ETV007/Figures/Cyp51.png', height = 3, width = 10.5)
+
+all_genes %>% dplyr::select(Raet1e, Cd27, Cd244, Nkg7, Ppard, Cd80, Cd68) %>% tibble::rownames_to_column(var = "ID") %>%
+  separate(col = "ID", into = c("rep", "barcode", "treatment"), sep = "_", remove = TRUE) %>%
+  gather(Feature, Value, 5:10) %>%
+  ggplot(aes(x = Raet1e, y = Value)) + geom_point(aes(color = treatment), size = 2, alpha = 0.9) + 
+  facet_wrap(~Feature, scales = 'free') + 
+  scale_color_viridis(discrete = TRUE) +
+  labs(y = "FPKM")
+
+cor.test(all_genes$Raet1e, all_genes$Cd244, method = "spearman")
+```
+
+```{r}
+
+all_genes %>% select(Saa1, C1qa) %>% tibble::rownames_to_column(var = "ID") %>%
+  separate(col = "ID", into = c("rep", "barcode", "treatment"), sep = "_", remove = TRUE) %>%
+  filter(treatment == 'treated2.count') %>%
+  ggplot(aes(x = log10(Saa1), y = log10(C1qa))) + geom_point() + geom_text(aes(label = barcode))
+
+all_genes %>% select(Saa1, C1qb) %>% tibble::rownames_to_column(var = "ID") %>%
+  separate(col = "ID", into = c("rep", "barcode", "treatment"), sep = "_", remove = TRUE) %>%
+  filter(treatment == 'treated2.count') %>%
+  ggplot(aes(x = log10(Saa1), y = log10(C1qb))) + geom_point() + geom_text(aes(label = barcode))
+
+all_genes %>% select(C1qa, C1qb) %>% tibble::rownames_to_column(var = "ID") %>%
+  separate(col = "ID", into = c("rep", "barcode", "treatment"), sep = "_", remove = TRUE) %>%
+  filter(treatment == 'treated2.count') %>%
+  ggplot(aes(x = log10(C1qa), y = log10(C1qb))) + geom_point() + geom_text(aes(label = barcode))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+# load in liver lipid data
+raw_liverData = read.csv('~/Desktop/ETV007/raw_data/ETV007_Liver_Lipidomics.csv', header = TRUE, fill = TRUE, stringsAsFactors = FALSE)
+complete_liverData = raw_liverData[ ,colSums(is.na(raw_liverData)) <= 0*nrow(raw_liverData)] # remove any column with NA
+row.names(complete_liverData) = paste(complete_liverData$Treatment, "_", complete_liverData$Mouse_ID, sep = "")
+`%notin%` <- Negate(`%in%`)
+filtered_liverData = filter(complete_liverData, Mouse_ID %notin% c(53,39)) # check lipidomics script for outlier detection
+row.names(filtered_liverData) = paste(filtered_liverData$Treatment, "_", filtered_liverData$Mouse_ID, sep = "")
+filtered_liverData = filtered_liverData %>% dplyr::select(-c(Mouse_ID, Treatment))
+# load in mapping file for RNA-seq and Lipidomics ID's
+rnaseq_mapping_list = read.table('~/Desktop/ETV007/raw_data/rnaseq_mapping_list.txt', header = TRUE)
+
+
+
+test = filtered_liverData[,c(1:10)] %>% tibble::rownames_to_column(var="matching")
+
+# get lipid counts in similar format
+liver_matrix = read.csv("~/Desktop/ETV007/raw_data/lipid_matrix.csv")
+
+# compare samples in a manner wholly unbiased by the information about experimental groups
+# Only 576 lipids because cannot include lipids with NA values in any sample, needs to be numeric matrix
+all_lipids <- liver_matrix %>% tibble::column_to_rownames(var = "X")
+
+# correlation function, from WGCNA
+# get this message: bicor: zero MAD in variable 'x'. Pearson correlation was used for individual columns with zero (or missing) MAD.
+corr <- bicorAndPvalue(all_genes, all_lipids)
+
+bicor <- corr$bicor
+p <- corr$p
+
+# Function that creates table with all gene-lipid correlations/p-values that pass a specified significance threshold.
+createCorrTable <- function(bicor, p, threshold) {
+  
+  x <- bicor %>% as.data.frame() %>%
+  tibble::rownames_to_column(var = 'Gene') %>%
+  gather(Lipid, Bicor, CE_14_0_:TAG60_12_FA22_6)
+    
+  y <- p %>% as.data.frame() %>%
+  tibble::rownames_to_column(var = 'Gene') %>%
+  gather(Lipid, Pval, CE_14_0_:TAG60_12_FA22_6) %>%
+  mutate(Adj_P = p.adjust(Pval, method = 'BH', n = length(Pval)))
+
+  table <- left_join(x, y, by = c('Gene', 'Lipid')) %>%
+    dplyr::select(Gene, Lipid, Bicor, Adj_P) %>%
+    filter(Adj_P < threshold)
+  
+  return(table)
+}
+
+corrTable <- createCorrTable(bicor, p, 0.05)
+
+interestingCorr <- filter(corrTable, Bicor > 0.7 |  Bicor < -0.7)
+write.table(interestingCorr, '~/Desktop/ETV007/processed_data/corrTable_Bicor>|0.7|.txt', sep = '\t', row.names = FALSE)
+write.table(corrTable, '~/Desktop/ETV007/processed_data/corrTable_FDR<0.05.txt', sep = '\t', row.names = FALSE)
+```
+
+
+```{r}
+# comparisons between conditions (CHOW vs. WD8)
+res <- results(dds, contrast = c("condition", "8","6"))
+DE_genes <- as.data.frame(subset(res, padj < 0.05))
+
+```
+
+```{r}
+NewcorrTable = read.table('~/Desktop/ETV007/processed_data/corrTable_FDR<0.05.txt', header = TRUE)
+
+# how to select which genes to test? See which ones are highly correlated with most lipid species.
+geneFreq <- corrTable %>%
+  group_by(Gene) %>%
+  mutate(frequency = n()) %>%
+  dplyr::select(Gene, frequency) %>%
+  distinct() %>%
+  ungroup() 
+write.csv(geneFreq, '~/Desktop/geneFreq.csv')
+```
+
+```{r}
+# plotting individual genes vs. time on diet
+all_genes %>%
+  tibble::rownames_to_column(var = 'Treatment') %>%
+  separate(col = 'Treatment', into = c("exp", "index", "condition"), sep = "_", remove = F) %>%
+  dplyr::select(condition, `C1ra`) %>%
+  ggplot(aes(x = condition, y = `C1ra`)) + geom_boxplot(outlier.shape = NA) + geom_jitter(aes(color = condition))
+```
+
+

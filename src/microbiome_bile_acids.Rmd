@@ -1,0 +1,151 @@
+---
+title: "Microbiome and Bile Acids analysis"
+author: "Timothy Yu"
+date: "3/27/2021"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+library(phyloseq)
+library(ggfortify)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(viridis)
+require(cowplot)
+library(RColorBrewer)
+theme_set(theme_cowplot())
+```
+
+MICROBIOME ANALYSIS ================================================================================
+```{r}
+# generate rarefied phyloseq object
+pso_rar <- import_biom("../large_files/table_even73989_json.biom", treefilename = "../large_files/rep_set.tre", refseqfilename =  "../large_files/new_refseqs.fna")
+
+#fix the rank names. the taxa level (ranks) is not correct so need to fix that
+rank_names(pso_rar)
+colnames(tax_table(pso_rar)) <- c(k = "Kingdom", p = "Phylum", c = "Class", o = "Order", f = "Family", g = "Genus", s = "Species")
+rank_names(pso_rar)
+saveRDS(pso_rar, "../raw_data/pso_rar.rds")
+```
+
+```{r}
+# generate nonrarefied phyloseq object
+pso_nonrar <- import_biom("../large_files/table_mc73989_json.biom", treefilename = "../large_files/rep_set.tre", refseqfilename =  "../large_files/new_refseqs.fna")
+
+#fix the rank names. the taxa level(ranks) is not correct so need to fix that
+rank_names(pso_nonrar)
+colnames(tax_table(pso_nonrar)) <- c(k = "Kingdom", p = "Phylum", c = "Class", o = "Order", f = "Family", g = "Genus", s = "Species")
+rank_names(pso_nonrar)
+saveRDS(pso_nonrar, "../raw_data/pso_nonrar.rds")
+```
+
+```{r}
+# start analysis from here if you have the Rds objects
+# read in mapping file for samples
+mapping = read.table("../raw_data/Mapping_ETV007_wWeeks_On_WD.txt")
+pso_rar = readRDS("../raw_data/pso_rar.rds")
+pso_nonrar = readRDS("../raw_data/pso_nonrar.rds")
+```
+
+```{r}
+# save data output for Bethan
+otu = data.frame(pso_rar@otu_table@.Data) %>% tibble::rownames_to_column(var = "OTU")
+tax = data.frame(pso_rar@tax_table@.Data) %>% tibble::rownames_to_column(var = "OTU")
+data_table = left_join(tax, otu, by = "OTU")
+write.csv(data_table, '../processed_data/data_tables/microbiome_OTU_table.csv', row.names = F)
+```
+
+```{r}
+# generate PCA plots based on the rarefied data for 359 OTU's
+data = pso_rar@otu_table@.Data
+sample_order = data.frame("SampleID" = colnames(data))
+color = sample_order %>% left_join(mapping %>% select(SampleID, Weeks_On_Western_Diet), by = "SampleID")
+color$Weeks_On_Western_Diet = as.factor(color$Weeks_On_Western_Diet)
+
+autoplot(prcomp(t(data), scale. = TRUE), 
+         data = color, colour = 'Weeks_On_Western_Diet', size = 2.5) +
+        scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'), name = "Treatment")
+```
+
+```{r}
+# percent abundance plot by phylum
+order = (color %>% arrange(Weeks_On_Western_Diet))$SampleID
+abundance = plot_bar(pso_rar, fill = "Phylum")$data
+
+abundance %>% group_by(Sample, Phylum) %>%
+  mutate(sum_abundance = sum(Abundance)) %>%
+  ungroup() %>%
+  select(Sample, Phylum, sum_abundance) %>%
+  distinct() %>%
+  group_by(Sample) %>%
+  mutate(percent_abundance = sum_abundance / sum(sum_abundance)) %>%
+  select(Sample, Phylum, sum_abundance, percent_abundance) %>%
+  distinct() %>%
+  ggplot(aes(x = Sample, y = percent_abundance)) + 
+  geom_bar(aes(fill=Phylum), stat="identity", position="stack") +
+  scale_x_discrete(limits = order) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  labs(y = 'Fractional Abundance')
+
+#plot_bar(pso_rar, fill = "Phylum") %>%
+#  geom_bar(aes(color=Phylum, fill=Phylum), stat="identity", position="stack") +
+#  scale_x_discrete(limits = order)
+```
+```{r}
+# box plots of % abundance, by diet treatment for each phylum
+abundance %>% group_by(Sample, Phylum) %>%
+  mutate(sum_abundance = sum(Abundance)) %>%
+  ungroup() %>%
+  select(Sample, Phylum, sum_abundance) %>%
+  distinct() %>%
+  group_by(Sample) %>%
+  mutate(percent_abundance = sum_abundance / sum(sum_abundance)) %>%
+  select(Sample, Phylum, sum_abundance, percent_abundance) %>%
+  distinct() %>%
+  left_join(., mapping, by=c("Sample"="SampleID")) %>%
+  select(Sample, Phylum, percent_abundance, Weeks_On_Western_Diet) %>%
+  ggplot(aes(x = factor(Weeks_On_Western_Diet), y = percent_abundance)) + 
+  geom_boxplot(outlier.shape = NA, aes(fill = factor(Weeks_On_Western_Diet)), alpha = 0.6) +
+  geom_jitter(aes(fill = factor(Weeks_On_Western_Diet)), pch = 21, color = 'black', size = 2) +
+  scale_fill_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41')) +
+  facet_wrap(~Phylum, scales = 'free') +
+  labs(x = 'Weeks on Western Diet', y = 'Fractional Abundance') +
+  theme(legend.position = "none")
+```
+
+BILE ACIDS ANALYSIS ================================================================================
+```{r}
+# read in data
+BA_conc = read.csv('../raw_data/BA_ETV007_conc.csv', header = TRUE, stringsAsFactors = FALSE) %>% mutate(Treatment = paste(Diet,Time))
+BA_amount = read.csv('../raw_data/BA_ETV007_amount.csv', header = TRUE, stringsAsFactors = FALSE) %>% mutate(Treatment = paste(Diet,Time))
+```
+
+```{r}
+# PCA visualization of BA concentration and amount
+autoplot(prcomp(BA_conc[-c(1:4, ncol(BA_conc))], scale. = TRUE), data = BA_conc, colour = 'Treatment', size = 2.5) +
+  scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
+
+autoplot(prcomp(BA_amount[-c(1:5, ncol(BA_amount))], scale. = TRUE), 
+         data = BA_amount, colour = 'Treatment', size = 2.5) +
+  scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
+```
+
+```{r}
+# Box plots of bile acid concentration vs. diet
+BA_conc %>% gather(BA, Concentration, 5:23) %>% ggplot(aes(x = Treatment, y = Concentration)) +
+  geom_boxplot(outlier.shape = NA, aes(fill = Treatment), alpha = 0.6) + 
+  geom_jitter(aes(fill = Treatment), pch = 21, color = 'black', size = 2) + 
+  scale_fill_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41')) +
+  facet_wrap(~BA, scales = 'free')
+```
+
+```{r}
+# Box plots of bile acid amount vs. diet
+BA_amount %>% gather(BA, Amount, 6:24) %>% ggplot(aes(x = Treatment, y = Amount)) +
+  geom_boxplot(outlier.shape = NA, aes(fill = Treatment), alpha = 0.6) + 
+  geom_jitter(aes(fill = Treatment), pch = 21, color = 'black', size = 2) + 
+  scale_fill_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41')) +
+  facet_wrap(~BA, scales = 'free')
+```
+
