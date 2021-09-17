@@ -29,12 +29,26 @@ plasmalipids = read.csv('../processed_data/data_tables/lipidomics_plasma_clean.c
 ```
 
 ```{r}
+# merging rna-seq and lipid data for corr scatter plot, Gino
+rnaseq_mapping_list = read.table('../raw_data/rnaseq_mapping_list.txt', header = TRUE, stringsAsFactors = FALSE)
+
+all_genes["sampleID"] = rnaseq_mapping_list[match(rownames(all_genes), rnaseq_mapping_list$RNA_seq_ID), 2, drop=F]
+liverlipids["sampleID"] = rownames(liverlipids)
+
+sctplotdata <- merge(all_genes, liverlipids, by="sampleID")
+
+write.csv(sctplotdata, 'nraseq_liverlipid_merge.csv')
+#plot_data %>% ggplot(aes(x = gene_of_interest, y = lipid_of_interest)) + geom_point()
+```
+
+
+```{r}
 # merging RNA-seq and liver lipidomics by same identifier. We will merge by the lipidomics ID.
 head(all_genes, 3)
 head(liverlipids, 3)
 
 # load in mapping file for RNA-seq and Lipidomics ID's
-rnaseq_mapping_list = read.table('~/Desktop/ETV007/raw_data/rnaseq_mapping_list.txt', header = TRUE, stringsAsFactors = FALSE)
+rnaseq_mapping_list = read.table('../raw_data/rnaseq_mapping_list.txt', header = TRUE, stringsAsFactors = FALSE)
 
 medians = data.frame("Median" = apply(all_genes, 2, median, na.rm = T)) %>% tibble::rownames_to_column(var = "Gene") %>% filter(Median > 0.1)
 
