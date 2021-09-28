@@ -9,25 +9,42 @@
 
 library(shiny)
 library(shinythemes)
+#library(shinyWidgets)
+#library(shinydashboard)
 library(ggplot2)
 library(plotly)
 library(DT)
+library(shinybusy)
 
 # Define UI for application that draws a histogram
 shinyUI(
     tagList(
+        #useShinydashboard(),
+        busy_start_up(
+            loader = spin_epic("orbit", color ="#FFB81C"), #"#FFF"
+            #text = "Loading... \n aa",
+            text = HTML(paste("Bethan Data", "Loading...", sep = '<br/>')),
+            timeout = 3500,
+            color = "#FFF",
+            background = "#003B5C"   #"#112446"
+        ),
+        
         includeCSS("www/mycss.css"),
+        
     #shinythemes::themeSelector(),
-    navbarPage(fluid=T, windowTitle = "Bethan Data ",
+    navbarPage(fluid=T, windowTitle = "Bethan Data",
         theme = shinytheme("cosmo"),  # <--- To use a theme, uncomment this
         "Bethan Data",
         tabPanel("Navbar 1",#fluid=FALSE,
-                 sidebarPanel(fluid=FALSE, width = 3,
+                 sidebarPanel(fluid=FALSE, width = 2,
                      #fileInput("spList", "Species List:", accept = c(".xlsx")),
                      #textInput("sp", "Species:", "LPC 16:1"),
                      
                      #tags$h5("Search Gene"),
-                     textInput("gene", "Search Gene", "Apoh"),
+                     #textInput("gene", "Search Gene", "Apoh"),
+                     selectizeInput("gene", "Search Gene", 
+                                 choices=c("Apoh"), 
+                                 selected = "Apoh"),
                      actionButton("search_gene.lipid.corr", "Search"),
                      
                      #tags$h5("Download Data:"),
@@ -45,11 +62,27 @@ shinyUI(
                  mainPanel(width=9,
                      tabsetPanel(
                          tabPanel("Gene-Lipid Corr",
+                                  
+                                  h3("Gene Boxplot"),
+                                  plotlyOutput("gene.boxplot",height = 600),
+                                  hr(),
+                                  
                                   h3("Correlation Table"),
                                   DT::dataTableOutput("corr.table", height = "450px"),
-                            
+                                  hr(),
+                                  
                                   h3("Scatter Plot(selected in table)"),
-                                  plotlyOutput("genelip.scatplot"),
+                                  plotlyOutput("genelip.scatplot",height = 500),
+                                  hr(),
+                     
+                                  #h3("Scatter Plot(selected in table)"),
+                                  #plotlyOutput("genelip.scatplot"),
+                                  #fluidRow(class = "myRow1", 
+                                  #    splitLayout(cellWidths = c("55%", "45%"), 
+                                  #                plotlyOutput("gene.boxplot",height = 500),
+                                  #                plotlyOutput("genelip.scatplot",height = 500)),
+                                  #),
+                                  
                                   
                                   #h4("row"),
                                   #verbatimTextOutput("spInput"),
@@ -59,13 +92,25 @@ shinyUI(
                                   #h4("Header 4"),
                                   #h5("Header 5")
                          ),
-                         tabPanel("Gene Boxplot", 
-                                  plotlyOutput("gene.boxplot")
+                         
+                         ##tab boxplot
+                         #tabPanel("Gene Boxplot", 
+                         #         #plotlyOutput("gene.boxplot")
                                   
+                         #         ),
+                        
+                         tabPanel("RNA-Seq Data",
+                                  h3("RNA-Seq Data"),
+                                  DT::dataTableOutput("rnaseq")),
+                         
+                         tabPanel("Lipid Data", 
+                                  h3("Lipid Data"),
+                                  DT::dataTableOutput("lipidtable"),
+                                  hr(),
+                                  
+                                  h3("Lipid Box Plot(selected in table)"),
+                                  plotlyOutput("Lipid.boxplot")
                                   ),
-                         tabPanel("Gene List",
-                                  h4("Gene List"),
-                                  DT::dataTableOutput("gene.list")),
                          
                          tabPanel("Tab 1", "This panel is intentionally left blank")
                      )
