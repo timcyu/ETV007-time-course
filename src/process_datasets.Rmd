@@ -3,22 +3,22 @@ title: "Process datasets"
 output: html_document
 ---
 Here, we process all raw data into a clean, consistent format. The exception is the RNA-seq count data, which gets processed in the same script as the analysis script `rnaseq.Rmd`. 
-```{r}
+```{r, include=FALSE}
 library(tidyverse)
 library(phyloseq)
 ```
 
-1. Liver lipidomics
+Liver lipidomics
 ```{r}
 
 ```
 
-2. Plasma lipidomics
+Plasma lipidomics
 ```{r}
 
 ```
 
-3. Bile acids (amount)
+Bile acids (amount)
 ```{r}
 data = read.csv('../raw_data/ETV007_BA_amount.csv', header = TRUE, stringsAsFactors = FALSE) %>%
   mutate(Treatment = paste(Diet,Time, sep="")) %>%
@@ -27,7 +27,7 @@ data = read.csv('../raw_data/ETV007_BA_amount.csv', header = TRUE, stringsAsFact
 write.csv(data, '../processed_data/datasets/BA_amount.csv',row.names = F)
 ```
 
-4. Bile acids (concentration)
+Bile acids (concentration)
 ```{r}
 data = read.csv('../raw_data/ETV007_BA_concentration.csv', header = TRUE, stringsAsFactors = FALSE) %>%
   mutate(Treatment = paste(Diet,Time, sep="")) %>%
@@ -36,7 +36,101 @@ data = read.csv('../raw_data/ETV007_BA_concentration.csv', header = TRUE, string
 write.csv(data, '../processed_data/datasets/BA_concentration.csv',row.names = F)
 ```
 
-5. Microbiome (rarefied counts)
+Microbiome (non-rarefied counts)
+```{r}
+# format the mapping file: samples -> ID, treatment
+mapping = read.table("../raw_data/Mappings/Mapping_ETV007_wWeeks_On_WD.txt") %>%
+  select(SampleID, Smpl_ID, Weeks_On_Western_Diet) %>%
+  separate(Smpl_ID, c("Exp", "Mouse.ID", "Redo"), sep = "_", fill = "right")
+redone_samples = (mapping %>% filter(Redo == 'redo'))$Mouse.ID
+mapping = mapping %>% 
+  mutate(ID = ifelse(Mouse.ID %in% redone_samples & Redo == 'redo', as.numeric(Mouse.ID),
+              ifelse(Mouse.ID %in% redone_samples & is.na(Redo), NA, as.numeric(Mouse.ID)))) %>%
+  mutate(Treatment = ifelse(Weeks_On_Western_Diet == 0, 'Chow8',
+                     ifelse(Weeks_On_Western_Diet == 2, 'WD2',
+                     ifelse(Weeks_On_Western_Diet == 4, 'WD4',
+                     ifelse(Weeks_On_Western_Diet == 6, 'WD6',
+                     ifelse(Weeks_On_Western_Diet == 8, 'WD8', NA)))))) %>%
+  select(SampleID, ID, Treatment) %>% drop_na()
+
+# read in data
+data = import_biom('../raw_data/ETV007-Microbiome-nonrarefied.biom')
+
+# taxonomic information
+tax = data.frame(data@tax_table@.Data) %>% tibble::rownames_to_column(var = "OTU")
+write.csv(tax, '../raw_data/Mappings/Microbiome_tax_class_nonrarefied.csv',row.names = F)
+
+# make data frame
+otu = t(as.data.frame(data@otu_table))
+formatted_data = otu %>% 
+  as.data.frame() %>% tibble::rownames_to_column(var = "TV.ID") %>%
+  left_join(., mapping, by = c("TV.ID"="SampleID")) %>%
+  relocate(c(ID, Treatment), .after = TV.ID) %>%
+  select(-TV.ID) %>%
+  na.omit() # omit the original samples that were redone
+write.csv(formatted_data, '../processed_data/datasets/Microbiome_otu_nonrarefied.csv',row.names = F)
+
+total_counts = colSums(otu, na.rm = FALSE, dims = 1)
+fractional_otu = sweep(otu, 2, total_counts, `/`)
+formatted_frac_data = fractional_otu %>% 
+  as.data.frame() %>% tibble::rownames_to_column(var = "TV.ID") %>%
+  left_join(., mapping, by = c("TV.ID"="SampleID")) %>%
+  relocate(c(ID, Treatment), .after = TV.ID) %>%
+  select(-TV.ID) %>%
+  na.omit() # omit the original samples that were redone
+write.csv(formatted_frac_data, '../processed_data/datasets/Microbiome_fracotu_nonrarefied.csv',row.names = F)
+```
+
+Microbiome (rarefied counts)
+```{r}
+data = import_biom('../raw_data/ETV007-Microbiome-rarefied.biom')
+
+# taxonomic information
+tax = data.frame(data@tax_table@.Data) %>% tibble::rownames_to_column(var = "OTU")
+write.csv(tax, '../raw_data/Mappings/Microbiome_tax_class_rarefied.csv',row.names = F)
+
+# make data frame
+otu = t(as.data.frame(data@otu_table))
+formatted_data = otu %>% 
+  as.data.frame() %>% tibble::rownames_to_column(var = "TV.ID") %>%
+  left_join(., mapping, by = c("TV.ID"="SampleID")) %>%
+  relocate(c(ID, Treatment), .after = TV.ID) %>%
+  select(-TV.ID) %>%
+  na.omit() # omit the original samples that were redone
+write.csv(formatted_data, '../processed_data/datasets/Microbiome_otu_rarefied.csv',row.names = F)
+
+total_counts = colSums(otu, na.rm = FALSE, dims = 1)
+fractional_otu = sweep(otu, 2, total_counts, `/`)
+formatted_frac_data = fractional_otu %>% 
+  as.data.frame() %>% tibble::rownames_to_column(var = "TV.ID") %>%
+  left_join(., mapping, by = c("TV.ID"="SampleID")) %>%
+  relocate(c(ID, Treatment), .after = TV.ID) %>%
+  select(-TV.ID) %>%
+  na.omit() # omit the original samples that were redone
+write.csv(formatted_frac_data, '../processed_data/datasets/Microbiome_fracotu_rarefied.csv',row.names = F)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```{r}
 pso_rar = readRDS("../raw_data/ETV007_Microbiome_rarefied.rds")
 
@@ -77,6 +171,7 @@ write.csv(data, '../processed_data/datasets/Microbiome_fractional_rarefied.csv',
 pso_nonrar = readRDS("../raw_data/ETV007_Microbiome_nonrarefied.rds")
 
 # format the mapping file: samples -> ID, treatment
+raw_mapping = read.table("../raw_data/Mappings/Mapping_ETV007_wWeeks_On_WD.txt")
 mapping = read.table("../raw_data/Mappings/Mapping_ETV007_wWeeks_On_WD.txt") %>%
   select(SampleID, Smpl_ID, Weeks_On_Western_Diet) %>%
   separate(Smpl_ID, c("Exp", "Mouse.ID", "Redo"), sep = "_", fill = "right")
@@ -95,6 +190,11 @@ mapping = mapping %>%
 otu = data.frame(pso_nonrar@otu_table@.Data)
 total_counts = colSums(otu, na.rm = FALSE, dims = 1)
 fractional_otu = sweep(otu, 2, total_counts, `/`)
+
+row.names(otu)
+mapping$SampleID
+
+setdiff(row.names(otu), mapping$SampleID)
 
 data = fractional_otu %>% 
   t() %>% as.data.frame() %>% tibble::rownames_to_column(var = "TV.ID") %>%

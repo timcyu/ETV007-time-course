@@ -1,0 +1,47 @@
+---
+title: "Microbiome analysis"
+author: "Timothy Yu"
+date: "3/27/2021"
+output: html_document
+---
+```{r, include = FALSE}
+library(tidyverse)
+library(ggplot2)
+library(ggfortify)
+require(cowplot)
+theme_set(theme_cowplot())
+```
+
+```{r}
+# using the rarefied data for these analyses
+data = read.csv('../processed_data/datasets/Microbiome_otu_rarefied.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
+```
+
+```{r}
+# PCA
+autoplot(prcomp(data[-c(1,2)], scale. = TRUE), data = data, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
+```
+```{r}
+# load in the fractional data
+frac_data = read.csv('../processed_data/datasets/Microbiome_fracotu_rarefied.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
+
+# load in taxonomic information
+tax_info = read.csv('../raw_data/Mappings/Microbiome_tax_class_rarefied.csv', header = TRUE, stringsAsFactors = FALSE)
+```
+  Rank1     Rank2    Rank3     Rank4     Rank5     Rank6     Rank7
+"Kingdom" "Phylum"  "Class"   "Order"   "Family"  "Genus"   "Species"
+
+```{r}
+total_otus = rowSums(data[-c(1,2)])
+# because rarefied, all have 73989 reads
+
+data %>%
+  select(ID, Treatment, (tax_info %>% filter(Rank5 == 'f__Verrucomicrobiaceae'))$OTU) %>%
+  mutate(percentVerruco = ((select(., -c(ID, Treatment)) %>% rowSums) / 73989) * 100) %>%
+  select(ID, Treatment, percentVerruco) %>%
+  ggplot(aes(x = Treatment, y = percentVerruco)) + geom_boxplot(outlier.shape=NA) +
+  geom_jitter(aes(color = Treatment), size = 3) +
+  scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41')) +
+  labs(x = 'Diet', y = 'Relative Abundance Per Sample (%)', title = 'f_Verrucomicrobioaceae')
+```
+
