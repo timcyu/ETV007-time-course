@@ -22,15 +22,12 @@ data = read.csv('../processed_data/datasets/Microbiome_otu_rarefied.csv', header
 autoplot(prcomp(data[-c(1,2)], scale. = TRUE), data = data, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
 ```
 ```{r}
-# load in the fractional data
-frac_data = read.csv('../processed_data/datasets/Microbiome_fracotu_rarefied.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
-
 # load in taxonomic information
 tax_info = read.csv('../raw_data/Mappings/Microbiome_tax_class_rarefied.csv', header = TRUE, stringsAsFactors = FALSE)
 ```
+
   Rank1     Rank2    Rank3     Rank4     Rank5     Rank6     Rank7
 "Kingdom" "Phylum"  "Class"   "Order"   "Family"  "Genus"   "Species"
-
 ```{r}
 total_otus = rowSums(data[-c(1,2)])
 # because rarefied, all have 73989 reads

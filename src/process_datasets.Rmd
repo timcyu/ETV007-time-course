@@ -10,30 +10,63 @@ library(phyloseq)
 
 Liver lipidomics
 ```{r}
-
+data = read.csv('../raw_data/ETV007_Lipidomics_liver.csv', 
+                header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
+  select_if(~ !any(is.na(.))) %>%
+  mutate(Treatment = recode(Treatment, `CHOW8` = "Chow8")) %>%
+  relocate(Treatment, .after = ID)
+write.csv(data, '../processed_data/datasets/Lipidomics_liver.csv',row.names = F)
 ```
 
 Plasma lipidomics
 ```{r}
-
+data = read.csv('../raw_data/ETV007_Lipidomics_plasma.csv', 
+                header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
+  select_if(~ !any(is.na(.))) %>%
+  mutate(Treatment = recode(Treatment, `CHOW8` = "Chow8")) %>%
+  relocate(Treatment, .after = ID)
+write.csv(data, '../processed_data/datasets/Lipidomics_plasma.csv',row.names = F)
 ```
 
-Bile acids (amount)
+Intestinal bile acids (nmol)
 ```{r}
-data = read.csv('../raw_data/ETV007_BA_amount.csv', header = TRUE, stringsAsFactors = FALSE) %>%
-  mutate(Treatment = paste(Diet,Time, sep="")) %>%
-  select(-c(Diet, Time, ID.Diet.Time, BileVol)) %>%
-  relocate(Treatment, .after = ID)
-write.csv(data, '../processed_data/datasets/BA_amount.csv',row.names = F)
+data = read.csv('../raw_data/ETV007_BA_intestine.csv', 
+                header = TRUE, stringsAsFactors = FALSE, check.names=FALSE) %>%
+  mutate(Treatment = paste0(Diet, Duration)) %>%
+  select(-c(Dataset, Diet, Duration)) %>%
+  relocate(Treatment, .after = ID) %>%
+  drop_na()
+write.csv(data, '../processed_data/datasets/BA_intestine.csv',row.names = F)
 ```
 
-Bile acids (concentration)
+Liver bile acids (nmol)
 ```{r}
-data = read.csv('../raw_data/ETV007_BA_concentration.csv', header = TRUE, stringsAsFactors = FALSE) %>%
-  mutate(Treatment = paste(Diet,Time, sep="")) %>%
-  select(-c(Diet, Time, ID.Diet.Time)) %>%
+data = read.csv('../raw_data/ETV007_BA_liver.csv', 
+                header = TRUE, stringsAsFactors = FALSE, check.names=FALSE) %>%
+  mutate(Treatment = paste0(Diet, Duration)) %>%
+  select(-c(Dataset, Diet, Duration)) %>%
   relocate(Treatment, .after = ID)
-write.csv(data, '../processed_data/datasets/BA_concentration.csv',row.names = F)
+write.csv(data, '../processed_data/datasets/BA_liver.csv',row.names = F)
+```
+
+Biliary bile acids (nmol)
+```{r}
+data = read.csv('../raw_data/ETV007_BA_biliary.csv', 
+                header = TRUE, stringsAsFactors = FALSE, check.names=FALSE) %>%
+  mutate(Treatment = paste0(Diet, Duration)) %>%
+  select(-c(Dataset, Diet, Duration)) %>%
+  relocate(Treatment, .after = ID)
+write.csv(data, '../processed_data/datasets/BA_biliary.csv',row.names = F)
+```
+
+Total pool bile acids (nmol)
+```{r}
+data = read.csv('../raw_data/ETV007_BA_totalpool.csv', 
+                header = TRUE, stringsAsFactors = FALSE, check.names=FALSE) %>%
+  mutate(Treatment = paste0(Diet, Duration)) %>%
+  select(-c(Dataset, Diet, Duration)) %>%
+  relocate(Treatment, .after = ID)
+write.csv(data, '../processed_data/datasets/BA_totalpool.csv',row.names = F)
 ```
 
 Microbiome (non-rarefied counts)
