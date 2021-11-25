@@ -16,6 +16,7 @@ library(RColorBrewer)
 theme_set(theme_cowplot())
 ```
 
+Liver lipidomics 
 ```{r}
 liverData = read.csv('../processed_data/datasets/Lipidomics_liver.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
 ```
@@ -124,6 +125,128 @@ TG48_data %>% ggplot(aes(x = Feature, y = as.factor(ID))) +
         axis.title.x = element_blank(), axis.title.y = element_blank())
 #ggsave('../figures/lipidomics_liver_TG48_heatmap.pdf', height = 14, width = 9)
 ```
+
+Plasma lipidomics 
+```{r}
+plasmaData = read.csv('../processed_data/datasets/Lipidomics_plasma.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
+```
+
+```{r}
+autoplot(prcomp(plasmaData[-c(1,2)], scale. = TRUE), data = plasmaData, colour = 'Treatment', 
+         size = 0.1, label = TRUE, label.size = 3, frame = TRUE, frame.type = 'norm', 
+         frame.level = 0.95) + 
+         scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41')) +
+         scale_fill_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
+```
+```{r}
+# PCA plot of plasma lipidomics data
+autoplot(prcomp(plasmaData[-c(1,2)], scale. = TRUE), data = plasmaData, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
+```
+```{r}
+# Generate dataframe for plasma lipidomics bubble plot
+totalLipidByClass = plasmaData %>%
+  gather(Feature, Value, 3:ncol(.)) %>%
+  separate(col = 'Feature', into = c("Class"), sep = "\\.", remove = FALSE, extra = 'drop') %>%
+  mutate(RefinedClass = ifelse(grepl("PE[.]O", Feature), "PE_O",
+                        ifelse(grepl("PE[.]P", Feature), "PE_P", Class))) %>%
+  select(-Class) %>%
+  group_by(ID, RefinedClass) %>%
+  mutate(totalLipid = sum(Value)) %>%
+  ungroup() %>%
+  select(ID, Treatment, RefinedClass, totalLipid) %>%
+  distinct()
+
+# Use Dunnett's test to get significance of each lipid class at WD2,4,6,8 relative to control
+totalLipidByClass$Treatment <- as.factor(totalLipidByClass$Treatment)
+lipidClasses = levels(factor(totalLipidByClass$RefinedClass))
+pval_table = data.frame("Comparison" = character(), "pval" = double(), "Median" = double(), "FC" = double(), "RefinedClass" = character(), stringsAsFactors = FALSE)
+
+for(i in lipidClasses) {
+  result = DunnettTest(totalLipid ~ Treatment, 
+                       data = filter(totalLipidByClass, RefinedClass == i), 
+                       control = 'Chow8')
+  FC = totalLipidByClass %>% 
+    filter(RefinedClass == i) %>% 
+    group_by(Treatment) %>% 
+    mutate(Median = median(totalLipid)) %>% 
+    ungroup() %>%
+    select(Treatment, RefinedClass, Median) %>% 
+    distinct() %>% 
+    mutate(FC = Median / filter(., Treatment == 'Chow8')$Median) %>%
+    filter(Treatment != 'Chow8') %>% 
+    mutate(Comparison = paste(Treatment, "-", "Chow8", sep = "")) %>% 
+    select(Comparison, Median, FC, RefinedClass)
+  
+  # combine the significance and fold-change into single entry
+  entry = as.data.frame(result$Chow8) %>% 
+    select(pval) %>% 
+    tibble::rownames_to_column(var = "Comparison") %>% 
+    left_join(., FC, by = "Comparison")
+
+  pval_table = rbind(pval_table, entry)
+}
+```
+
+```{r}
+# Plasma lipidomics bubble plot of diet vs. fold-change. Fold-change is calculated using the median lipid abundance for each diet. Size of bubble highlights signficance (from Dunnett's test that does post hoc pairwise multiple comparisons procedure)
+ann_colors <- c("#A00000", "#5757F9", "#FF6000", "#D7B0B0", "#077E97", "#606060", "#FFFFE0")
+
+pval_table %>%
+  mutate(log2FC = log2(FC)) %>%
+  mutate(log10P = -log10(pval)) %>%
+  mutate(log10Abundance = log10(Median)) %>%
+  arrange(desc(log10Abundance)) %>%
+  mutate(Significant = ifelse(pval < 0.05, "yes", "no")) %>%
+  ggplot(aes(x=log2FC, y=log10Abundance, size=log10P, fill=RefinedClass)) +
+    geom_vline(xintercept = 0, linetype = 'solid', color = 'black') +
+    geom_hline(yintercept = c(2, 3, 4), linetype = 'dotted', color = 'grey70', size = 1) +
+    geom_point(alpha=0.9, aes(fill = RefinedClass), color = 'black', pch = 21, stroke = 1) +
+    scale_size(range = c(5, 20), name="Significance -log10(P)") +
+    xlim(-2, 2) +
+    scale_fill_manual(values = colors) +
+    facet_grid(~Comparison, scales = 'fixed') +
+    labs(x = "log2(Fold-change)", y = "log10(Abundance)")
+```
+```{r}
+# CE abundance heat map for a specific CE (CE(18:1))
+abundant_CE = plasmaData %>% select(grep("CE", colnames(.))) %>%
+  colMeans() %>% as.data.frame() %>%
+  filter(. > 50)
+
+scaled_plasmaData = cbind(plasmaData[,c(1,2)], 
+                    scale(plasmaData %>% select(rownames(abundant_CE)))) # mean 0, sd 1
+
+CE_data = scaled_plasmaData %>%
+  gather(Feature, Value, 3:ncol(.))
+
+order = c(unique((CE18_1_data %>% filter(Treatment == 'Chow8'))$ID),
+          unique((CE18_1_data %>% filter(Treatment == 'WD2'))$ID),
+          unique((CE18_1_data %>% filter(Treatment == 'WD4'))$ID),
+          unique((CE18_1_data %>% filter(Treatment == 'WD6'))$ID),
+          unique((CE18_1_data %>% filter(Treatment == 'WD8'))$ID))
+
+CE_data %>% ggplot(aes(x = Feature, y = as.factor(ID))) + 
+  geom_tile(aes(fill = Value), alpha = 1, color = 'white', size = 0.1) + 
+  scale_fill_distiller(palette = "Spectral") + 
+  scale_y_discrete(limits = rev(factor(order))) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        axis.title.x = element_blank(), axis.title.y = element_blank())
+#ggsave('../figures/lipidomics_liver_TG48_heatmap.pdf', height = 14, width = 9)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
