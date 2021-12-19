@@ -12,7 +12,7 @@ Liver lipidomics
 ```{r}
 data = read.csv('../raw_data/ETV007_Lipidomics_liver.csv', 
                 header = TRUE, stringsAsFactors = FALSE) %>%
-  select_if(~ !any(is.na(.))) %>%
+  #select_if(~ !any(is.na(.))) %>%
   mutate(Treatment = recode(Treatment, `CHOW8` = "Chow8")) %>%
   relocate(Treatment, .after = ID)
 write.csv(data, '../processed_data/datasets/Lipidomics_liver.csv',row.names = F)
@@ -22,7 +22,7 @@ Plasma lipidomics
 ```{r}
 data = read.csv('../raw_data/ETV007_Lipidomics_plasma.csv', 
                 header = TRUE, stringsAsFactors = FALSE) %>%
-  select_if(~ !any(is.na(.))) %>%
+  #select_if(~ !any(is.na(.))) %>%
   mutate(Treatment = recode(Treatment, `CHOW8` = "Chow8")) %>%
   relocate(Treatment, .after = ID)
 write.csv(data, '../processed_data/datasets/Lipidomics_plasma.csv',row.names = F)

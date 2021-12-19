@@ -22,7 +22,8 @@ liverData = read.csv('../processed_data/datasets/Lipidomics_liver.csv', header =
 ```
 
 ```{r}
-autoplot(prcomp(liverData[-c(1,2)], scale. = TRUE), data = liverData, colour = 'Treatment', 
+autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), 
+         data = liverData, colour = 'Treatment', 
          size = 0.1, label = TRUE, label.size = 3, frame = TRUE, frame.type = 'norm', 
          frame.level = 0.95) + 
          scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41')) +
@@ -33,7 +34,9 @@ autoplot(prcomp(liverData[-c(1,2)], scale. = TRUE), data = liverData, colour = '
 ```{r}
 # PCA plot of liver lipidomics data
 liverData = liverData %>% filter(!ID %in% c(39,53))
-autoplot(prcomp(liverData[-c(1,2)], scale. = TRUE), data = liverData, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
+autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), 
+         data = liverData, colour = 'Treatment', size = 2.5) + 
+  scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
 ```
 ```{r}
 # Generate dataframe for liver lipidomics bubble plot
