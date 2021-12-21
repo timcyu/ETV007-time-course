@@ -4,15 +4,13 @@ author: "Timothy Yu"
 ---
 
 ```{r setup, include = FALSE}
-library(dplyr)
-library(tidyr)
-library(ggplot2)
+library(tidyverse)
 library(ggfortify)
 library(bnstruct)
 library(viridis)
-require(cowplot)
 library(DescTools)
 library(RColorBrewer)
+require(cowplot)
 theme_set(theme_cowplot())
 ```
 
@@ -47,6 +45,7 @@ totalLipidByClass = liverData %>%
                         ifelse(grepl("PE[.]P", Feature), "PE_P", Class))) %>%
   select(-Class) %>%
   group_by(ID, RefinedClass) %>%
+  drop_na() %>%
   mutate(totalLipid = sum(Value)) %>%
   ungroup() %>%
   select(ID, Treatment, RefinedClass, totalLipid) %>%
@@ -86,7 +85,7 @@ for(i in lipidClasses) {
 ```{r}
 # Liver lipidomics bubble plot of diet vs. fold-change. Fold-change is calculated using the median lipid abundance for each diet. Size of bubble highlights signficance (from Dunnett's test that does post hoc pairwise multiple comparisons procedure)
 colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#D7B0B0", "#9F044D", 
-            "#077E97", "#C5944E", "#034E61", "#FFA040", "#606060", "#FFFFE0")
+            "#077E97", "#C5944E", "#034E61", "#FFA040", "#606060", "#FFFFE0", "green")
 
 pval_table %>%
   mutate(log2FC = log2(FC)) %>%
@@ -114,11 +113,11 @@ TG48_data = scaled_liverData %>%
           remove = FALSE, extra = 'drop') %>%
   filter(Class == 'TG', Chain == 48)
 
-order = c(unique((TG_data %>% filter(Treatment == 'Chow8'))$ID),
-          unique((TG_data %>% filter(Treatment == 'WD2'))$ID),
-          unique((TG_data %>% filter(Treatment == 'WD4'))$ID),
-          unique((TG_data %>% filter(Treatment == 'WD6'))$ID),
-          unique((TG_data %>% filter(Treatment == 'WD8'))$ID))
+order = c(unique((TG48_data %>% filter(Treatment == 'Chow8'))$ID),
+          unique((TG48_data %>% filter(Treatment == 'WD2'))$ID),
+          unique((TG48_data %>% filter(Treatment == 'WD4'))$ID),
+          unique((TG48_data %>% filter(Treatment == 'WD6'))$ID),
+          unique((TG48_data %>% filter(Treatment == 'WD8'))$ID))
 
 TG48_data %>% ggplot(aes(x = Feature, y = as.factor(ID))) + 
   geom_tile(aes(fill = Value), alpha = 1, color = 'white', size = 0.1) + 
@@ -236,6 +235,18 @@ CE_data %>% ggplot(aes(x = Feature, y = as.factor(ID))) +
         axis.title.x = element_blank(), axis.title.y = element_blank())
 #ggsave('../figures/lipidomics_liver_TG48_heatmap.pdf', height = 14, width = 9)
 ```
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

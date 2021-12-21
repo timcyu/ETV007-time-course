@@ -299,9 +299,27 @@ write.csv(plasma_lipid_x_microbiome,'../processed_data/correlations/plasma_lipid
 rm(plasma_lipid_x_microbiome, plasma_lipids_mat, microbiome)
 ```
 
+Correlate microbiome -> RNA-seq
+```{r}
+# only correlate if ID's are in both data sets
+common_ids = intersect(microbiome$ID, RNAseq$ID)
+microbiome_mat = microbiome %>% filter(ID %in% common_ids) %>% arrange(ID)
+RNAseq_mat = RNAseq %>% filter(ID %in% common_ids) %>% arrange(ID)
 
+# check that order of ID's are the same in both data sets
+assertthat::are_equal(microbiome_mat$ID, RNAseq_mat$ID)
 
+# correlate (NA's and missing values exist, so warnings expected)
+corr = bicorAndPvalue((RNAseq_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
+                      (microbiome_mat %>% dplyr::select(-c('ID', 'Treatment')))
+       )
+```
 
+```{r}
+gene_x_microbiome = createCorrTable(corr, 'Gene', 'Microbiome_otu')
+write.csv(gene_x_microbiome, '../processed_data/correlations/gene_x_microbiome.csv', row.names = FALSE)
+rm(gene_x_microbiome, microbiome_mat, RNAseq_mat)
+```
 
 
 
