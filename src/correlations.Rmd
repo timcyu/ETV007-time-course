@@ -154,13 +154,13 @@ corr = bicorAndPvalue((liver_lipids_mat %>% dplyr::select(-c('ID', 'Treatment'))
                       (biliary_ba_mat %>% dplyr::select(-c('ID', 'Treatment')))
        )
 ```
+
 ```{r}
 liver_lipid_x_biliary_ba = createCorrTable(corr, 'Liver_lipid', 'Biliary_ba')
 write.csv(liver_lipid_x_biliary_ba, '../processed_data/correlations/liver_lipid_x_biliary_ba.csv',
           row.names = FALSE)
 rm(liver_lipid_x_biliary_ba, liver_lipids_mat, biliary_ba_mat)
 ```
-
 
 Correlate liver lipids -> microbiome
 ```{r}
@@ -177,6 +177,7 @@ corr = bicorAndPvalue((liver_lipids_mat %>% dplyr::select(-c('ID', 'Treatment'))
                       (microbiome_mat %>% dplyr::select(-c('ID', 'Treatment')))
        )
 ```
+
 ```{r}
 liver_lipid_x_microbiome = createCorrTable(corr, 'Liver_lipid', 'Microbiome_otu')
 write.csv(liver_lipid_x_microbiome, '../processed_data/correlations/liver_lipid_x_microbiome.csv',
@@ -321,11 +322,74 @@ write.csv(gene_x_microbiome, '../processed_data/correlations/gene_x_microbiome.c
 rm(gene_x_microbiome, microbiome_mat, RNAseq_mat)
 ```
 
+Correlate microbiome -> intestinal BA
+```{r}
+# only correlate if ID's are in both data sets
+common_ids = intersect(microbiome$ID, intestinal_ba$ID)
+microbiome_mat = microbiome %>% filter(ID %in% common_ids) %>% arrange(ID)
+intestinal_ba_mat = intestinal_ba %>% filter(ID %in% common_ids) %>% arrange(ID)
 
+# check that order of ID's are the same in both data sets
+assertthat::are_equal(microbiome_mat$ID, intestinal_ba_mat$ID)
 
+# correlate (NA's and missing values exist, so warnings expected)
+corr = bicorAndPvalue((intestinal_ba_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
+                      (microbiome_mat %>% dplyr::select(-c('ID', 'Treatment')))
+       )
+```
 
+```{r}
+intestinal_ba_x_microbiome = createCorrTable(corr, 'Intestinal_ba', 'Microbiome_otu')
+write.csv(intestinal_ba_x_microbiome, '../processed_data/correlations/intestinal_ba_x_microbiome.csv',
+          row.names = FALSE)
+rm(intestinal_ba_x_microbiome, microbiome_mat, intestinal_ba_mat)
+```
 
+Correlate microbiome -> liver BA
+```{r}
+# only correlate if ID's are in both data sets
+common_ids = intersect(microbiome$ID, liver_ba$ID)
+microbiome_mat = microbiome %>% filter(ID %in% common_ids) %>% arrange(ID)
+liver_ba_mat = liver_ba %>% filter(ID %in% common_ids) %>% arrange(ID)
 
+# check that order of ID's are the same in both data sets
+assertthat::are_equal(microbiome_mat$ID, liver_ba_mat$ID)
+
+# correlate (NA's and missing values exist, so warnings expected)
+corr = bicorAndPvalue((liver_ba_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
+                      (microbiome_mat %>% dplyr::select(-c('ID', 'Treatment')))
+       )
+```
+
+```{r}
+liver_ba_x_microbiome = createCorrTable(corr, 'Liver_ba', 'Microbiome_otu')
+write.csv(liver_ba_x_microbiome, '../processed_data/correlations/liver_ba_x_microbiome.csv',
+          row.names = FALSE)
+rm(liver_ba_x_microbiome, microbiome_mat, liver_ba_mat)
+```
+
+Correlate microbiome -> biliary BA
+```{r}
+# only correlate if ID's are in both data sets
+common_ids = intersect(microbiome$ID, biliary_ba$ID)
+microbiome_mat = microbiome %>% filter(ID %in% common_ids) %>% arrange(ID)
+biliary_ba_mat = biliary_ba %>% filter(ID %in% common_ids) %>% arrange(ID)
+
+# check that order of ID's are the same in both data sets
+assertthat::are_equal(microbiome_mat$ID, biliary_ba_mat$ID)
+
+# correlate (NA's and missing values exist, so warnings expected)
+corr = bicorAndPvalue((biliary_ba_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
+                      (microbiome_mat %>% dplyr::select(-c('ID', 'Treatment')))
+       )
+```
+
+```{r}
+biliary_ba_x_microbiome = createCorrTable(corr, 'Biliary_ba', 'Microbiome_otu')
+write.csv(biliary_ba_x_microbiome, '../processed_data/correlations/biliary_ba_x_microbiome.csv',
+          row.names = FALSE)
+rm(biliary_ba_x_microbiome, microbiome_mat, biliary_ba_mat)
+```
 
 
 

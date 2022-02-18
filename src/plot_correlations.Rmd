@@ -1,0 +1,68 @@
+---
+author: "Timothy Yu"
+date: "2/2/2022"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+library(viridis)
+library(RColorBrewer)
+require(cowplot)
+theme_set(theme_cowplot())
+```
+
+```{r}
+microbiome_species_mapping = read.csv('../raw_data/Mappings/Microbiome_tax_class_rarefied.csv', header = TRUE)
+```
+
+```{r}
+# read in the data
+species_to_plot = (read.csv('../processed_data/correlations/biliary_ba_x_microbiome.csv', header = TRUE) %>% 
+  left_join(., microbiome_species_mapping, by = c("Microbiome_otu"="OTU")) %>%
+  filter(adj_pval < 0.01) %>% select(Microbiome_otu) %>% distinct())$Microbiome_otu
+
+read.csv('../processed_data/correlations/biliary_ba_x_microbiome.csv', header = TRUE) %>% 
+  left_join(., microbiome_species_mapping, by = c("Microbiome_otu"="OTU")) %>%
+  filter(Microbiome_otu %in% species_to_plot) %>%
+  ggplot(aes(x = Microbiome_otu, y = Biliary_ba)) + geom_tile(aes(fill = bicor)) +
+  scale_fill_distiller(palette='RdYlBu') +
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank()) +
+  facet_wrap(~Rank2)
+ggsave('~/Desktop/biliary_ba_x_microbiome_p1e-2.pdf', height = 6, width = 10)
+```
+
+```{r}
+# read in the data
+species_to_plot = (read.csv('../processed_data/correlations/liver_ba_x_microbiome.csv', header = TRUE) %>% 
+  left_join(., microbiome_species_mapping, by = c("Microbiome_otu"="OTU")) %>%
+  filter(adj_pval < 0.01) %>% select(Microbiome_otu) %>% distinct())$Microbiome_otu
+
+read.csv('../processed_data/correlations/liver_ba_x_microbiome.csv', header = TRUE) %>% 
+  left_join(., microbiome_species_mapping, by = c("Microbiome_otu"="OTU")) %>%
+  filter(Microbiome_otu %in% species_to_plot) %>%
+  ggplot(aes(x = Microbiome_otu, y = Liver_ba)) + geom_tile(aes(fill = bicor)) +
+  scale_fill_distiller(palette='RdYlBu') +
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank()) +
+  facet_wrap(~Rank2)
+ggsave('~/Desktop/liver_ba_x_microbiome_p1e-2.pdf', height = 6, width = 10)
+```
+
+```{r}
+# read in the data
+species_to_plot = (read.csv('../processed_data/correlations/intestinal_ba_x_microbiome.csv', header = TRUE) %>% 
+  left_join(., microbiome_species_mapping, by = c("Microbiome_otu"="OTU")) %>%
+  filter(adj_pval < 0.01) %>% select(Microbiome_otu) %>% distinct())$Microbiome_otu
+
+read.csv('../processed_data/correlations/intestinal_ba_x_microbiome.csv', header = TRUE) %>% 
+  left_join(., microbiome_species_mapping, by = c("Microbiome_otu"="OTU")) %>%
+  filter(Microbiome_otu %in% species_to_plot) %>%
+  ggplot(aes(x = Microbiome_otu, y = Intestinal_ba)) + geom_tile(aes(fill = bicor)) +
+  scale_fill_distiller(palette='RdYlBu') +
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank()) +
+  facet_wrap(~Rank2)
+ggsave('~/Desktop/intestinal_ba_x_microbiome_p1e-2.pdf', height = 6, width = 10)
+```

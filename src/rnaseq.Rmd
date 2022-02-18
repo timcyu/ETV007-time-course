@@ -70,7 +70,7 @@ dds <- DESeq(ddsHTSeq)
 vsd = vst(dds)
 levels(vsd$condition) = c("CHOW8", "WD2", "WD4", "WD6", "WD8")
 plotPCA(vsd) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'), name = "Treatment")
-ggsave('../figures/rnaseq_pca.pdf', height = 5, width = 6)
+ggsave('../figures/rnaseq_pca.pdf', height = 4.5, width = 5)
 ```
 
 ```{r}
@@ -113,7 +113,7 @@ c <- table %>% ggplot(aes(x = Condition1, y = Condition2)) + geom_tile(aes(fill 
   scale_fill_viridis() + scale_x_continuous(breaks=seq(0,8,2)) + scale_y_continuous(breaks=seq(0,8,2)) + labs(x = "Weeks on Western Diet", y = "Weeks on Western Diet", title = "Down-regulated") + geom_text(aes(label = Down), size = 6) + theme(legend.position = "none")
 
 plot_grid(a,b,c, ncol = 3)
-#ggsave('../figures/rnaseq_pairwise_de_genes_heatmap.pdf', height = 5, width = 13)
+ggsave('../figures/rnaseq_pairwise_de_genes_heatmap.pdf', height = 5, width = 13)
 rm(a,b,c)
 ```
 
@@ -125,63 +125,61 @@ mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% disti
 res = lfcShrink(dds, contrast = c("condition", "2","0"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
 EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 60), title = 'CHOW versus WD2', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
-#ggsave('../supp_figs/Volcano/0vs2.pdf', height = 8.5, width = 6.5)
-#ggsave('../main_figs/Fig3C.pdf', height = 8.5, width = 6.5)
+ggsave('../figures/volcano/0vs2.pdf', height = 8, width = 6.5)
 
 # 4 vs 0
 res = lfcShrink(dds, contrast = c("condition", "4","0"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
 EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 40), title = 'CHOW versus WD4', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
-#ggsave('../supp_figs/Volcano/0vs4.pdf', height = 8.5, width = 6.5)
+ggsave('../figures/volcano/0vs4.pdf', height = 8, width = 6.5)
 
 # 6 vs 0
 res = lfcShrink(dds, contrast = c("condition", "6","0"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
 EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 55), title = 'CHOW versus WD6', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
-#ggsave('../supp_figs/Volcano/0vs6.pdf', height = 8.5, width = 6.5)
+ggsave('../figures/volcano/0vs6.pdf', height = 8, width = 6.5)
 
 # 8 vs 0
 res = lfcShrink(dds, contrast = c("condition", "8","0"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
 EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 55), title = 'CHOW versus WD8', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
-#ggsave('../supp_figs/Volcano/0vs8.pdf', height = 8.5, width = 6.5)
+ggsave('../figures/volcano/0vs8.pdf', height = 8, width = 6.5)
 
 # 4 vs. 2
 res = lfcShrink(dds, contrast = c("condition", "4","2"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
 EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 7.5), title = 'WD2 versus WD4', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
-#ggsave('../supp_figs/Volcano/2vs4.pdf', height = 8.5, width = 6.5)
+ggsave('../figures/volcano/2vs4.pdf', height = 8, width = 6.5)
 
 # 6 vs. 2
 res = lfcShrink(dds, contrast = c("condition", "6","2"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
 EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 10), title = 'WD2 versus WD6', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
-#ggsave('../supp_figs/Volcano/2vs6.pdf', height = 8.5, width = 6.5)
+ggsave('../figures/volcano/2vs6.pdf', height = 8, width = 6.5)
 
 # 8 vs. 2
 res = lfcShrink(dds, contrast = c("condition", "8","2"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
 EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 12.5), title = 'WD2 versus WD8', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
-#ggsave('../supp_figs/Volcano/2vs8.pdf', height = 8.5, width = 6.5)
-#ggsave('../main_figs/Fig3D.pdf', height = 8.5, width = 6.5)
+ggsave('../figures/volcano/2vs8.pdf', height = 8, width = 6.5)
 
 # 6 vs. 4
 res = lfcShrink(dds, contrast = c("condition", "6","4"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
 EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 5), title = 'WD4 versus WD6', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
-#ggsave('../supp_figs/Volcano/4vs6.pdf', height = 8.5, width = 6.5)
+ggsave('../figures/volcano/4vs6.pdf', height = 8, width = 6.5)
 
 # 8 vs. 4
 res = lfcShrink(dds, contrast = c("condition", "8","4"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
 EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 5), title = 'WD4 versus WD8', pCutoff = 0.05, FCcutoff = 1, colAlpha = 0.5, pointSize = 2.0)
-#ggsave('../supp_figs/Volcano/4vs8.pdf', height = 8.5, width = 6.5)
+ggsave('../figures/volcano/4vs8.pdf', height = 8, width = 6.5)
 
 # 8 vs. 6
 res = lfcShrink(dds, contrast = c("condition", "8","6"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
 EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-1, 1), ylim = c(0, 3), title = 'WD6 versus WD8', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.5, pointSize = 2.0)
-#ggsave('../supp_figs/Volcano/6vs8.pdf', height = 8.5, width = 6.5)
+ggsave('../figures/volcano/6vs8.pdf', height = 8, width = 6.5)
 ```
 
 ```{r}
@@ -239,29 +237,30 @@ write.csv(all_genes, '../processed_data/datasets/RNAseq_FPKM.csv', row.names = F
 ```
 
 ```{r}
+all_genes = read.csv('../processed_data/datasets/RNAseq_FPKM.csv', header = TRUE, check.names = FALSE)
+```
+
+```{r}
 # output genes that are significantly DE between 02 and 28,
 #                                        exclusively between 02
 #                                        exclusively between 28
 # create lists for pathway analysis
 # GO Term and KEGG pathway enrichment performed using STRING v11
 
-both = all_genes %>% dplyr::select(filter(class_df, class == 'both')$Associated.Gene.Name) %>%
-  tibble::rownames_to_column(var = "sample_ID") %>% 
-  separate(col = 'sample_ID', into = c("exp", "index", "condition"), sep = "_", remove = F) %>% dplyr::select(-exp, -index)
-write.csv(both, '../processed_data/gene_lists/02_and_28_list.csv', quote = F)
-write.table(filter(class_df, class == 'both')$Associated.Gene.Name, '../processed_data/gene_lists/02_and_28_genes.txt', quote = F, row.names = F, col.names = F)
+both = all_genes %>% dplyr::select(ID, Treatment, filter(class_df, class == 'both')$Associated.Gene.Name)
+write.table(colnames(both %>% dplyr::select(-c(ID, Treatment))),
+            '../processed_data/degenes/02_and_28_list.csv',
+            quote = F, col.names = F, row.names = F)
 
-uniq_02 = all_genes %>% dplyr::select(filter(class_df, class == 'uniq_02')$Associated.Gene.Name) %>%
-  tibble::rownames_to_column(var = "sample_ID") %>% 
-  separate(col = 'sample_ID', into = c("exp", "index", "condition"), sep = "_", remove = F) %>% dplyr::select(-exp, -index)
-write.csv(uniq_02, '../processed_data/gene_lists/02_list.csv', quote = F)
-write.table(filter(class_df, class == 'uniq_02')$Associated.Gene.Name, '../processed_data/gene_lists/02_genes.txt', quote = F, row.names = F, col.names = F)
+uniq_02 = all_genes %>% dplyr::select(ID, Treatment, filter(class_df, class == 'uniq_02')$Associated.Gene.Name)
+write.table(colnames(uniq_02 %>% dplyr::select(-c(ID, Treatment))),
+            '../processed_data/degenes/02_list.csv',
+            quote = F, col.names = F, row.names = F)
 
-uniq_28 = all_genes %>% dplyr::select(filter(class_df, class == 'uniq_28')$Associated.Gene.Name) %>%
-  tibble::rownames_to_column(var = "sample_ID") %>% 
-  separate(col = 'sample_ID', into = c("exp", "index", "condition"), sep = "_", remove = F) %>% dplyr::select(-exp, -index)
-write.csv(uniq_28, '../processed_data/gene_lists/28_list.csv', quote = F)
-write.table(filter(class_df, class == 'uniq_28')$Associated.Gene.Name, '../processed_data/gene_lists/28_genes.txt', quote = F, row.names = F, col.names = F)
+uniq_28 = all_genes %>% dplyr::select(ID, Treatment, filter(class_df, class == 'uniq_02')$Associated.Gene.Name)
+write.table(colnames(uniq_28 %>% dplyr::select(-c(ID, Treatment))),
+            '../processed_data/degenes/28_list.csv',
+            quote = F, col.names = F, row.names = F)
 ```
 
 ```{r}
