@@ -245,7 +245,6 @@ all_genes = read.csv('../processed_data/datasets/RNAseq_FPKM.csv', header = TRUE
 #                                        exclusively between 02
 #                                        exclusively between 28
 # create lists for pathway analysis
-# GO Term and KEGG pathway enrichment performed using STRING v11
 
 both = all_genes %>% dplyr::select(ID, Treatment, filter(class_df, class == 'both')$Associated.Gene.Name)
 write.table(colnames(both %>% dplyr::select(-c(ID, Treatment))),
@@ -257,11 +256,107 @@ write.table(colnames(uniq_02 %>% dplyr::select(-c(ID, Treatment))),
             '../processed_data/degenes/02_list.csv',
             quote = F, col.names = F, row.names = F)
 
-uniq_28 = all_genes %>% dplyr::select(ID, Treatment, filter(class_df, class == 'uniq_02')$Associated.Gene.Name)
+uniq_28 = all_genes %>% dplyr::select(ID, Treatment, filter(class_df, class == 'uniq_28')$Associated.Gene.Name)
 write.table(colnames(uniq_28 %>% dplyr::select(-c(ID, Treatment))),
             '../processed_data/degenes/28_list.csv',
             quote = F, col.names = F, row.names = F)
 ```
+
+Gene lists were submitted to http://bioinformatics.sdstate.edu/go/ for GO and KEGG enrichment.
+
+```{r}
+### plot top GO terms for 02, 28, and both.
+
+go_02 = read.csv('../processed_data/degenes/02_go_enrichment.csv', header = TRUE) %>% 
+  filter(Pathway.Genes < 500)
+
+go_28 = read.csv('../processed_data/degenes/28_go_enrichment.csv', header = TRUE) %>%
+  filter(Pathway.Genes < 500)
+
+go_both = read.csv('../processed_data/degenes/02_and_28_go_enrichment.csv', header = TRUE) %>%
+  filter(Pathway.Genes < 500)
+
+go_both %>%
+  ggplot(aes(x = reorder(Pathway, -Enrichment.FDR), y = -log10(Enrichment.FDR))) +
+  geom_bar(stat="identity", fill = '#6082B6') + 
+  coord_flip() +
+  labs(y = '-log10(Enrichment FDR)', title = 'DE between 0-2 week WD and 2-8 week WD') +
+  theme(axis.title.y=element_blank())
+ggsave('../figures/rnaseq_GO_02_and_28.pdf', height = 6, width = 10)
+
+go_02 %>%
+  ggplot(aes(x = reorder(Pathway, -Enrichment.FDR), y = -log10(Enrichment.FDR))) +
+  geom_bar(stat="identity", fill = '#00A36C') + 
+  coord_flip() +
+  labs(y = '-log10(Enrichment FDR)', title = 'DE between 0-2 week WD') +
+  theme(axis.title.y=element_blank())
+ggsave('../figures/rnaseq_GO_02.pdf', height = 6, width = 10)
+
+go_28 %>%
+  ggplot(aes(x = reorder(Pathway, -Enrichment.FDR), y = -log10(Enrichment.FDR))) +
+  geom_bar(stat="identity", fill = '#DC143C') + 
+  coord_flip() +
+  labs(y = '-log10(Enrichment FDR)', title = 'DE between 2-8 week WD') +
+  theme(axis.title.y=element_blank())
+ggsave('../figures/rnaseq_GO_28.pdf', height = 6, width = 10)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```{r}
 # lets look at genes that are DE between 02 and 28
