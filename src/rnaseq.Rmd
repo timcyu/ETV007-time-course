@@ -193,10 +193,10 @@ ggsave('../figures/volcano/6vs8.pdf', height = 8, width = 6.5)
 mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% distinct()
 
 res02 = lfcShrink(dds, contrast = c("condition", "2","0"), type = 'ashr')
-genes02 = as.data.frame(res02) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID") %>% mutate(DE_02 = ifelse(padj < 0.05 & abs(log2FoldChange) > 1, "yes", "no")) %>% dplyr::select(Associated.Gene.Name, DE_02)
+genes02 = as.data.frame(res02) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID") %>% mutate(DE_02 = ifelse(padj < 0.05 & abs(log2FoldChange) > log2(1.5), "yes", "no")) %>% dplyr::select(Associated.Gene.Name, DE_02)
 
 res28 = lfcShrink(dds, contrast = c("condition", "8","2"), type = 'ashr')
-genes28 = as.data.frame(res28) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID") %>% mutate(DE_28 = ifelse(padj < 0.05 & abs(log2FoldChange) > 1, "yes", "no")) %>% dplyr::select(Associated.Gene.Name, DE_28)
+genes28 = as.data.frame(res28) %>% tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% left_join(., mapping, by = "Ensembl.Gene.ID") %>% mutate(DE_28 = ifelse(padj < 0.05 & abs(log2FoldChange) > log2(1.5), "yes", "no")) %>% dplyr::select(Associated.Gene.Name, DE_28)
 
 class_df = cbind(genes02, genes28) %>% dplyr::select(-3) %>% 
   mutate(class = ifelse(DE_02 == 'yes' & DE_28 == 'no', 'uniq_02',
