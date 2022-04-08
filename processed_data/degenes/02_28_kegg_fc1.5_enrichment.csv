@@ -1,0 +1,5 @@
+"Enrichment FDR","nGenes","Pathway Genes","Fold Enrichment","Pathway","URL","Genes"
+0.0031227797385322,4,84,20.4341736694678,"Chemical carcinogenesis","http://www.genome.jp/kegg-bin/show_pathway?mmu05204 "," Gstm3  Cyp2c55  Gstm1  Ugt1a9"
+0.0156433142272989,3,73,17.634971796938,"Metabolism of xenobiotics by cytochrome P450","http://www.genome.jp/kegg-bin/show_pathway?mmu00980 "," Gstm3  Gstm1  Ugt1a9"
+0.0156433142272989,3,71,18.1317315658658,"Drug metabolism","http://www.genome.jp/kegg-bin/show_pathway?mmu00982 "," Gstm3  Gstm1  Ugt1a9"
+0.0229637416509064,3,92,13.9929667519182,"Drug metabolism","http://www.genome.jp/kegg-bin/show_pathway?mmu00983 "," Gstm3  Gstm1  Ugt1a9"

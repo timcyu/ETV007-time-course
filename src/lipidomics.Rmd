@@ -102,7 +102,7 @@ pval_table = pval_table %>% mutate(significant = ifelse(pval < 0.05, "yes", "no"
 ```{r}
 # Liver lipidomics bubble plot of diet vs. fold-change. Fold-change is calculated using the median lipid abundance for each diet. Size of bubble highlights signficance (from Dunnett's test that does post hoc pairwise multiple comparisons procedure)
 colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0", "#9F044D", 
-            "#077E97", "#C5944E", "#034E61", "#FFA040", "#606060", "#af05d3")
+            "#077E97", "#C5944E", "#034E61", "#FFA040", "#606060", "#fcfc81")
 
 pval_table %>%
   mutate(log2FC = log2(FC)) %>%
@@ -176,7 +176,7 @@ pval_table = pval_table %>% mutate(significant = ifelse(pval < 0.05, "yes", "no"
 ```{r}
 # Plasma lipidomics bubble plot of diet vs. fold-change. Fold-change is calculated using the median lipid abundance for each diet. Size of bubble highlights signficance (from Dunnett's test that does post hoc pairwise multiple comparisons procedure)
 colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0", "#9F044D", 
-            "#077E97", "#606060", "#af05d3")
+            "#077E97", "#606060", "#fcfc81")
 
 pval_table %>%
   mutate(log2FC = log2(FC)) %>%
@@ -262,7 +262,7 @@ totalLipidbyClass_plasma = plasmaData %>%
  
 lipids_in_common = intersect(totalLipidbyClass_liver$RefinedClass, totalLipidbyClass_plasma$RefinedClass)
  
-df = data.frame("LipidClass" = character(), "Spearman_corr" = numeric())
+df = data.frame("LipidClass" = character(), "Spearman_corr" = numeric(), "p_val" = numeric())
 for (lipid in lipids_in_common) {
   lipid_in_liver = totalLipidbyClass_liver %>% filter(RefinedClass == lipid)
   lipid_in_plasma = totalLipidbyClass_plasma %>% filter(RefinedClass == lipid)
@@ -270,15 +270,22 @@ for (lipid in lipids_in_common) {
   combined = left_join(lipid_in_liver, lipid_in_plasma, by = 'ID')
   corr = cor.test(combined$totalLipid.x, combined$totalLipid.y, 
                   method=c("pearson", "kendall", "spearman"))$estimate
+  p = cor.test(combined$totalLipid.x, combined$totalLipid.y, 
+                  method=c("pearson", "kendall", "spearman"))$p.value
   
-  df = rbind(df, data.frame("LipidClass" = lipid, "Spearman_corr" = corr))
+  df = rbind(df, data.frame("LipidClass" = lipid, "Spearman_corr" = corr, "p_val" = p))
 }
 
+colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0", "#9F044D", 
+            "#077E97", "#606060", "#fcfc81")
+
 df %>% ggplot(aes(x = LipidClass, y = Spearman_corr)) + 
-  geom_bar(stat = 'identity', fill = 'gray70', color = 'black', size=0.5) +
+  geom_bar(stat = 'identity', aes(fill=LipidClass), color = 'black', size=0.5) +
+  scale_fill_manual(values = colors) +
   geom_hline(yintercept=1, color='maroon', linetype='dashed') +
   geom_hline(yintercept=-1, color='maroon', linetype='dashed') +
-  labs(y = 'Spearman correlation', x = 'Total lipid by class')
+  labs(y = 'Spearman correlation', x = 'Total lipid by class') +
+  theme(legend.position = "None")
 
 ggsave('../figures/lipidomics_plasma_liver_total_corr.pdf', height = 5, width = 10)
 ```

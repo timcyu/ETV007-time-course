@@ -210,6 +210,7 @@ nrow(filter(class_df, class == 'none')) # 22478
 ```
 
 ```{r}
+# no need to run this if already saved dataframe.
 # lets look at these genes more closely, but first, get FPKM measurements for each gene.
 ordered_geneLength = data.frame("Ensembl.Gene.ID" = rownames(assay(dds)), stringsAsFactors = FALSE) %>% 
     left_join(., gene_info, by = "Ensembl.Gene.ID")
@@ -248,17 +249,17 @@ all_genes = read.csv('../processed_data/datasets/RNAseq_FPKM.csv', header = TRUE
 
 both = all_genes %>% dplyr::select(ID, Treatment, filter(class_df, class == 'both')$Associated.Gene.Name)
 write.table(colnames(both %>% dplyr::select(-c(ID, Treatment))),
-            '../processed_data/degenes/02_and_28_list.csv',
+            '../processed_data/degenes/02_and_28_list_fc1.5.csv',
             quote = F, col.names = F, row.names = F)
 
 uniq_02 = all_genes %>% dplyr::select(ID, Treatment, filter(class_df, class == 'uniq_02')$Associated.Gene.Name)
 write.table(colnames(uniq_02 %>% dplyr::select(-c(ID, Treatment))),
-            '../processed_data/degenes/02_list.csv',
+            '../processed_data/degenes/02_list_fc1.5.csv',
             quote = F, col.names = F, row.names = F)
 
 uniq_28 = all_genes %>% dplyr::select(ID, Treatment, filter(class_df, class == 'uniq_28')$Associated.Gene.Name)
 write.table(colnames(uniq_28 %>% dplyr::select(-c(ID, Treatment))),
-            '../processed_data/degenes/28_list.csv',
+            '../processed_data/degenes/28_list_fc1.5.csv',
             quote = F, col.names = F, row.names = F)
 ```
 
@@ -267,38 +268,49 @@ Gene lists were submitted to http://bioinformatics.sdstate.edu/go/ for GO and KE
 ```{r}
 ### plot top GO terms for 02, 28, and both.
 
-go_02 = read.csv('../processed_data/degenes/02_go_enrichment.csv', header = TRUE) %>% 
-  filter(Pathway.Genes < 500)
+kegg_02 = read.csv('../processed_data/degenes/02_kegg_fc1.5_enrichment.csv', header = TRUE) %>% 
+  filter(Fold.Enrichment > 3.5)
+kegg_28 = read.csv('../processed_data/degenes/28_kegg_fc1.5_enrichment.csv', header = TRUE) %>% 
+  filter(Fold.Enrichment > 3.5)
+kegg_both = read.csv('../processed_data/degenes/02_28_kegg_fc1.5_enrichment.csv', header = TRUE)
 
-go_28 = read.csv('../processed_data/degenes/28_go_enrichment.csv', header = TRUE) %>%
-  filter(Pathway.Genes < 500)
-
-go_both = read.csv('../processed_data/degenes/02_and_28_go_enrichment.csv', header = TRUE) %>%
-  filter(Pathway.Genes < 500)
-
-go_both %>%
-  ggplot(aes(x = reorder(Pathway, -Enrichment.FDR), y = -log10(Enrichment.FDR))) +
-  geom_bar(stat="identity", fill = '#6082B6') + 
+kegg_both %>%
+  ggplot(aes(x = reorder(Pathway, Fold.Enrichment), y = Fold.Enrichment, size = -log10(Enrichment.FDR))) +
+  geom_point(alpha=0.5, shape=21, color="black", fill = '#6082B6') +
+  scale_size(range = c(5, 20), name="-log10(Enrichment FDR)") +
   coord_flip() +
-  labs(y = '-log10(Enrichment FDR)', title = 'DE between 0-2 week WD and 2-8 week WD') +
+  labs(y = 'Fold Enrichment', title = 'DE between 0-2 week WD and 2-8 week WD') +
   theme(axis.title.y=element_blank())
-ggsave('../figures/rnaseq_GO_02_and_28.pdf', height = 6, width = 10)
+ggsave('../figures/rnaseq_kegg_fc1.5_02_and_28.pdf', height = 4, width = 8)
 
-go_02 %>%
-  ggplot(aes(x = reorder(Pathway, -Enrichment.FDR), y = -log10(Enrichment.FDR))) +
-  geom_bar(stat="identity", fill = '#00A36C') + 
+# manually filter out unrelated viruses / cancer pathways.
+kegg_02 %>%
+  filter(!Pathway %in% c('Coronavirus disease', 'Measles', 'Epstein-Barr virus infection', 'Influenza A',
+                         'Acute myeloid leukemia', 'Staphylococcus aureus infection', 
+                         'Osteoclast differentiation')) %>%
+  ggplot(aes(x = reorder(Pathway, Fold.Enrichment), y = Fold.Enrichment, size = -log10(Enrichment.FDR))) +
+  geom_point(alpha=0.9, shape=21, color="black", fill = '#00A36C') +
+  scale_size(range = c(3, 8), name="-log10(Enrichment FDR)") +
   coord_flip() +
-  labs(y = '-log10(Enrichment FDR)', title = 'DE between 0-2 week WD') +
-  theme(axis.title.y=element_blank())
-ggsave('../figures/rnaseq_GO_02.pdf', height = 6, width = 10)
+  labs(y = 'Fold Enrichment', title = 'DE between 0-2 week WD') +
+  theme(axis.title.y=element_blank(),
+        panel.grid.major.y = element_line(colour = "grey80", linetype = 'dashed')
+  ) 
+ggsave('../figures/rnaseq_kegg_fc1.5_02.pdf', height = 5, width = 10)
 
-go_28 %>%
-  ggplot(aes(x = reorder(Pathway, -Enrichment.FDR), y = -log10(Enrichment.FDR))) +
-  geom_bar(stat="identity", fill = '#DC143C') + 
+# manually filter out unrelated viruses / cancer pathways.
+kegg_28 %>%
+  filter(!Pathway %in% c('Amoebiasis', 'Chemical carcinogenesis', 'Malaria', 'Platinum drug resistance', 
+                         'Drug metabolism')) %>%
+  ggplot(aes(x = reorder(Pathway, Fold.Enrichment), y = Fold.Enrichment, size = -log10(Enrichment.FDR))) +
+  geom_point(alpha=0.9, shape=21, color="black", fill = '#DC143C') +
+  scale_size(range = c(3, 8), name="-log10(Enrichment FDR)") +
   coord_flip() +
-  labs(y = '-log10(Enrichment FDR)', title = 'DE between 2-8 week WD') +
-  theme(axis.title.y=element_blank())
-ggsave('../figures/rnaseq_GO_28.pdf', height = 6, width = 10)
+  labs(y = 'Fold Enrichment', title = 'DE between 2-8 week WD') +
+  theme(axis.title.y=element_blank(),
+        panel.grid.major.y = element_line(colour = "grey80", linetype = 'dashed')
+  ) 
+ggsave('../figures/rnaseq_kegg_fc1.5_28.pdf', height = 5, width = 11.5)
 ```
 
 
