@@ -223,6 +223,33 @@ CE_data %>% ggplot(aes(x = Feature, y = as.factor(ID))) +
 ggsave('../figures/lipidomics_plasma_CE_heatmap.pdf', height = 14, width = 9)
 ```
 ```{r}
+# corresponding plot for plasma -- triglyceride abundance heat map for a specific TG class (TG48)
+scaled_plasmaData = cbind(plasmaData[,c(1,2)], scale(plasmaData[,-c(1,2)])) # mean 0, sd 1
+
+plasma_TG48_data = scaled_plasmaData %>%
+  select_if(~ !any(is.na(.))) %>%
+  gather(Feature, Value, 3:ncol(.)) %>%
+  separate(col = 'Feature', into = c("Class", "Chain"), sep = "\\.", 
+          remove = FALSE, extra = 'drop') %>%
+  filter(Class == 'TG', Chain == 48)
+
+order = c(unique((plasma_TG48_data %>% filter(Treatment == 'Chow8'))$ID),
+          unique((plasma_TG48_data %>% filter(Treatment == 'WD2'))$ID),
+          unique((plasma_TG48_data %>% filter(Treatment == 'WD4'))$ID),
+          unique((plasma_TG48_data %>% filter(Treatment == 'WD6'))$ID),
+          unique((plasma_TG48_data %>% filter(Treatment == 'WD8'))$ID))
+
+plasma_TG48_data %>%
+  ggplot(aes(x = Feature, y = as.factor(ID))) + 
+  geom_tile(aes(fill = Value), alpha = 1, color = 'white', size = 0.1) + 
+  scale_fill_distiller(palette = "Spectral") + 
+  scale_y_discrete(limits = rev(factor(order))) + 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        axis.title.x = element_blank(), axis.title.y = element_blank())
+ggsave('../figures/lipidomics_plasma_TG48_heatmap.pdf', height = 14, width = 9)
+```
+
+```{r}
 # correlate total lipid classes between liver and plasma
 totalLipidbyClass_liver = liverData %>%
   gather(Feature, Value, 3:ncol(.)) %>%
@@ -275,6 +302,9 @@ for (lipid in lipids_in_common) {
   
   df = rbind(df, data.frame("LipidClass" = lipid, "Spearman_corr" = corr, "p_val" = p))
 }
+
+# save df
+write.csv(df, '../processed_data/misc/liver_plasma_lipid_class_corr.csv', row.names=FALSE)
 
 colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0", "#9F044D", 
             "#077E97", "#606060", "#fcfc81")

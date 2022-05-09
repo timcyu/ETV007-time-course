@@ -405,6 +405,33 @@ rm(biliary_ba_x_microbiome, microbiome_mat, biliary_ba_mat)
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```{r}
 # load in FPKM RNA-seq data
 genes = read.csv('../processed_data/data_tables/RNA-seq-FPKM-with-gene-names.csv', header = TRUE, row.names = 1)

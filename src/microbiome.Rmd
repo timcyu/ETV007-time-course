@@ -9,6 +9,7 @@ library(tidyverse)
 library(ggplot2)
 library(ggfortify)
 require(cowplot)
+library(WGCNA)
 theme_set(theme_cowplot())
 ```
 
@@ -20,6 +21,7 @@ data = read.csv('../processed_data/datasets/Microbiome_otu_rarefied.csv', header
 ```{r}
 # PCA
 autoplot(prcomp(data[-c(1,2)], scale. = TRUE), data = data, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
+ggsave('../figures/microbiome_rarefied_pca.pdf', height = 3.5, width = 5)
 ```
 ```{r}
 # load in taxonomic information
@@ -41,4 +43,132 @@ data %>%
   scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41')) +
   labs(x = 'Diet', y = 'Relative Abundance Per Sample (%)', title = 'f_Verrucomicrobioaceae')
 ```
+```{r}
+# load in total BA
+BA_totalpool = read.csv('../processed_data/datasets/BA_totalpool.csv', header = TRUE, stringsAsFactors = FALSE,
+                        check.names = FALSE)
+```
 
+```{r}
+createCorrTable <- function(corr_object, data1_name, data2_name) {
+  "
+  Create correlation / BH-adjusted p-value table from bicor object.
+  
+  Args ---
+  corr_object : bicor object that contains bicor and p 
+  data1_name : data type of first argument in bicorAndPValue()
+  data2_name : data type of second argument in bicorAndPValue()
+  "
+  bicor <- corr_object$bicor
+  p <- corr_object$p
+
+  x <- bicor %>% as.data.frame() %>%
+  tibble::rownames_to_column(var = data1_name) %>%
+  gather(!!data2_name, bicor, 2:ncol(.))
+    
+  y <- p %>% as.data.frame() %>%
+  tibble::rownames_to_column(var = data1_name) %>%
+  gather(!!data2_name, pval, 2:ncol(.)) %>%
+  mutate(adj_pval = p.adjust(pval, method = 'BH', n = length(pval)))
+
+  table <- left_join(x, y, by = c(data1_name, data2_name)) %>%
+    dplyr::select(!!data1_name, !!data2_name, bicor, adj_pval)
+  return(table)
+}
+```
+
+```{r}
+# correlation between firmicutes and total BA species
+firmicutes = data %>% 
+  select(ID, Treatment, (tax_info %>% filter(Rank2 == 'p__Firmicutes'))$OTU)
+
+# only correlate if ID's are in both data sets
+common_ids = intersect(firmicutes$ID, BA_totalpool$ID)
+firmicutes_mat = firmicutes %>% filter(ID %in% common_ids) %>% arrange(ID)
+BA_totalpool_mat = BA_totalpool %>% filter(ID %in% common_ids) %>% arrange(ID)
+
+# check that order of ID's are the same in both data sets
+assertthat::are_equal(firmicutes_mat$ID, BA_totalpool_mat$ID)
+
+# correlate (NA's and missing values exist, so warnings expected)
+corr = bicorAndPvalue((BA_totalpool_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
+                      (firmicutes_mat %>% dplyr::select(-c('ID', 'Treatment')))
+       )
+
+firmicutes_x_BA_totalpool = createCorrTable(corr, 'totalpool_ba', 'firmicutes')
+```
+```{r}
+# plot heatmap of significant correlations
+sig_firmicutes = (firmicutes_x_BA_totalpool %>% filter(adj_pval < 0.05))$firmicutes %>% unique()
+
+# selected data
+selected_df = firmicutes_x_BA_totalpool %>%
+  filter(firmicutes %in% sig_firmicutes) %>%
+  select(-adj_pval) %>%
+  spread(firmicutes, bicor, fill=0) %>%
+  tibble::column_to_rownames(var="totalpool_ba")
+
+# hierarchical clustering for order
+ba_ord = hclust( dist(selected_df, method = "euclidean"), method = "ward.D" )$order
+firmicutes_ord = hclust( dist(t(selected_df), method = "euclidean"), method = "ward.D" )$order
+
+# plot
+firmicutes_x_BA_totalpool %>%
+  filter(firmicutes %in% sig_firmicutes) %>%
+  ggplot(aes(x = firmicutes, y = totalpool_ba)) + geom_tile(aes(fill = bicor)) +
+  scale_fill_distiller(palette='RdYlBu') + 
+  scale_y_discrete(limits=rownames(selected_df)[ba_ord]) + 
+  scale_x_discrete(limits=colnames(selected_df)[firmicutes_ord]) +
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank()) +
+  labs(x="Firmicutes species", y="Bile Acids (Total Pool)")
+ggsave('../figures/firmicutes_x_ba_totalpool.pdf', height = 4, width = 6)
+```
+
+```{r}
+# correlation between Bacteroidetes and total BA species
+bacteroidetes = data %>% 
+  select(ID, Treatment, (tax_info %>% filter(Rank2 == 'p__Bacteroidetes'))$OTU)
+
+# only correlate if ID's are in both data sets
+common_ids = intersect(bacteroidetes$ID, BA_totalpool$ID)
+bacteroidetes_mat = bacteroidetes %>% filter(ID %in% common_ids) %>% arrange(ID)
+BA_totalpool_mat = BA_totalpool %>% filter(ID %in% common_ids) %>% arrange(ID)
+
+# check that order of ID's are the same in both data sets
+assertthat::are_equal(bacteroidetes_mat$ID, BA_totalpool_mat$ID)
+
+# correlate (NA's and missing values exist, so warnings expected)
+corr = bicorAndPvalue((BA_totalpool_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
+                      (bacteroidetes_mat %>% dplyr::select(-c('ID', 'Treatment')))
+       )
+
+bacteroidetes_x_BA_totalpool = createCorrTable(corr, 'totalpool_ba', 'bacteroidetes')
+```
+```{r}
+# plot heatmap of significant correlations
+sig_bacteroidetes = (bacteroidetes_x_BA_totalpool %>% filter(adj_pval < 0.05))$bacteroidetes %>% unique()
+
+# selected data
+selected_df = bacteroidetes_x_BA_totalpool %>%
+  filter(bacteroidetes %in% sig_bacteroidetes) %>%
+  select(-adj_pval) %>%
+  spread(bacteroidetes, bicor, fill=0) %>%
+  tibble::column_to_rownames(var="totalpool_ba")
+
+# hierarchical clustering for order
+ba_ord = hclust( dist(selected_df, method = "euclidean"), method = "ward.D" )$order
+bacteroidetes_ord = hclust( dist(t(selected_df), method = "euclidean"), method = "ward.D" )$order
+
+# plot
+bacteroidetes_x_BA_totalpool %>%
+  filter(bacteroidetes %in% sig_bacteroidetes) %>%
+  ggplot(aes(x = bacteroidetes, y = totalpool_ba)) + geom_tile(aes(fill = bicor)) +
+  scale_fill_distiller(palette='RdYlBu') + 
+  scale_y_discrete(limits=rownames(selected_df)[ba_ord]) + 
+  scale_x_discrete(limits=colnames(selected_df)[bacteroidetes_ord]) +
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank()) +
+  labs(x="Bacteroidetes species", y="Bile Acids (Total Pool)")
+ggsave('../figures/bacteroidetes_x_ba_totalpool.pdf', height = 4, width = 6)
+```

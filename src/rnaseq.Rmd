@@ -266,7 +266,7 @@ write.table(colnames(uniq_28 %>% dplyr::select(-c(ID, Treatment))),
 Gene lists were submitted to http://bioinformatics.sdstate.edu/go/ for GO and KEGG enrichment.
 
 ```{r}
-### plot top GO terms for 02, 28, and both.
+### plot top KEGG terms for 02, 28, and both.
 
 kegg_02 = read.csv('../processed_data/degenes/02_kegg_fc1.5_enrichment.csv', header = TRUE) %>% 
   filter(Fold.Enrichment > 3.5)

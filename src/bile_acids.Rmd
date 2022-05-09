@@ -1,0 +1,25 @@
+---
+title: "Bile Acids analysis"
+author: "Timothy Yu"
+date: "5/7/2022"
+output: html_document
+---
+```{r, include = FALSE}
+library(tidyverse)
+library(ggplot2)
+library(ggfortify)
+require(cowplot)
+theme_set(theme_cowplot())
+```
+
+```{r}
+# read in data
+BA_totalpool = read.csv('../processed_data/datasets/BA_totalpool.csv', header = TRUE, stringsAsFactors = FALSE,
+                        check.names = FALSE)
+```
+
+```{r}
+# PCA
+autoplot(prcomp(BA_totalpool[-c(1,2)], scale. = TRUE), data = BA_totalpool, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
+ggsave('../figures/bile_acids_totalpool_pca.pdf', height = 3.5, width = 5)
+```
