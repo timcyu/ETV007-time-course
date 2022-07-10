@@ -172,3 +172,70 @@ bacteroidetes_x_BA_totalpool %>%
   labs(x="Bacteroidetes species", y="Bile Acids (Total Pool)")
 ggsave('../figures/bacteroidetes_x_ba_totalpool.pdf', height = 4, width = 6)
 ```
+```{r}
+# correlation between Verrucomicrobia and total BA species
+verruco = data %>% 
+  select(ID, Treatment, (tax_info %>% filter(Rank2 == 'p__Verrucomicrobia'))$OTU)
+
+# only correlate if ID's are in both data sets
+common_ids = intersect(verruco$ID, BA_totalpool$ID)
+verruco_mat = verruco %>% filter(ID %in% common_ids) %>% arrange(ID)
+BA_totalpool_mat = BA_totalpool %>% filter(ID %in% common_ids) %>% arrange(ID)
+
+# check that order of ID's are the same in both data sets
+assertthat::are_equal(verruco_mat$ID, BA_totalpool_mat$ID)
+
+# correlate (NA's and missing values exist, so warnings expected)
+corr = bicorAndPvalue((BA_totalpool_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
+                      (verruco_mat %>% dplyr::select(-c('ID', 'Treatment')))
+       )
+
+verruco_x_BA_totalpool = createCorrTable(corr, 'totalpool_ba', 'verruco')
+```
+
+```{r}
+# plot heatmap of significant correlations
+sig_verruco = (verruco_x_BA_totalpool %>% filter(adj_pval < 0.05))$verruco %>% unique()
+
+# selected data
+selected_df = verruco_x_BA_totalpool %>%
+  filter(verruco %in% sig_verruco) %>%
+  select(-adj_pval) %>%
+  spread(verruco, bicor, fill=0) %>%
+  tibble::column_to_rownames(var="totalpool_ba")
+
+# hierarchical clustering for order
+ba_ord = hclust( dist(selected_df, method = "euclidean"), method = "ward.D" )$order
+verruco_ord = hclust( dist(t(selected_df), method = "euclidean"), method = "ward.D" )$order
+
+# plot
+verruco_x_BA_totalpool %>%
+  filter(verruco %in% sig_verruco) %>%
+  ggplot(aes(x = verruco, y = totalpool_ba)) + geom_tile(aes(fill = bicor)) +
+  scale_fill_distiller(palette='RdYlBu') + 
+  scale_y_discrete(limits=rownames(selected_df)[ba_ord]) + 
+  scale_x_discrete(limits=colnames(selected_df)[verruco_ord]) +
+  theme(axis.ticks.x = element_blank(),
+        axis.text.x = element_blank()) +
+  labs(x="Verrucomicrobia species", y="Bile Acids (Total Pool)")
+ggsave('../figures/verruco_x_ba_totalpool.pdf', height = 4, width = 6)
+```
+
+Get number of significant correlations between each phyla and each BA (separated by tissue)
+```{r}
+biliary_BA_x_micro = read.csv('../processed_data/correlations/biliary_ba_x_microbiome.csv', 
+                              header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
+  left_join(., (tax_info %>% select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
+
+liver_BA_x_micro = read.csv('../processed_data/correlations/liver_ba_x_microbiome.csv', 
+                            header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
+  left_join(., (tax_info %>% select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
+
+intestinal_BA_x_micro = read.csv('../processed_data/correlations/intestinal_ba_x_microbiome.csv', 
+                                 header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
+  left_join(., (tax_info %>% select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
+
+total_BA_x_micro = read.csv('../processed_data/correlations/total_ba_x_microbiome.csv', 
+                            header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
+  left_join(., (tax_info %>% select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
+```
