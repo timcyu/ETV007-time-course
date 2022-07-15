@@ -38,6 +38,10 @@ liver_ba = read.csv('../processed_data/datasets/BA_liver.csv', header = TRUE,
 biliary_ba = read.csv('../processed_data/datasets/BA_biliary.csv', header = TRUE,
                         stringsAsFactors = FALSE, check.names = FALSE)
 
+# load in total bile acids data
+total_ba = read.csv('../processed_data/datasets/BA_totalpool.csv', header = TRUE,
+                        stringsAsFactors = FALSE, check.names = FALSE)
+
 # load in microbiome (rarefied) data
 microbiome = read.csv('../processed_data/datasets/Microbiome_otu_rarefied.csv', header = TRUE, 
                 stringsAsFactors = FALSE, check.names = FALSE)
@@ -389,6 +393,29 @@ biliary_ba_x_microbiome = createCorrTable(corr, 'Biliary_ba', 'Microbiome_otu')
 write.csv(biliary_ba_x_microbiome, '../processed_data/correlations/biliary_ba_x_microbiome.csv',
           row.names = FALSE)
 rm(biliary_ba_x_microbiome, microbiome_mat, biliary_ba_mat)
+```
+
+Correlate microbiome -> total BA
+```{r}
+# only correlate if ID's are in both data sets
+common_ids = intersect(microbiome$ID, total_ba$ID)
+microbiome_mat = microbiome %>% filter(ID %in% common_ids) %>% arrange(ID)
+total_ba_mat = total_ba %>% filter(ID %in% common_ids) %>% arrange(ID)
+
+# check that order of ID's are the same in both data sets
+assertthat::are_equal(microbiome_mat$ID, total_ba_mat$ID)
+
+# correlate (NA's and missing values exist, so warnings expected)
+corr = bicorAndPvalue((total_ba_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
+                      (microbiome_mat %>% dplyr::select(-c('ID', 'Treatment')))
+       )
+```
+
+```{r}
+total_ba_x_microbiome = createCorrTable(corr, 'Total_ba', 'Microbiome_otu')
+write.csv(total_ba_x_microbiome, '../processed_data/correlations/total_ba_x_microbiome.csv',
+          row.names = FALSE)
+rm(total_ba_x_microbiome, microbiome_mat, total_ba_mat)
 ```
 
 
