@@ -238,7 +238,7 @@ genes02 = as.data.frame(res02) %>%
   left_join(., mapping, by = "Ensembl.Gene.ID") %>%
   mutate(
     log2FC_02 = log2FoldChange,
-    DE_02 = ifelse(padj < 0.01, "yes", "no"),
+    DE_02 = ifelse(padj < 0.05 & log2FoldChange > 0.5, "yes", "no"),
     direct_02 = ifelse(log2FoldChange > 0, "up", "down")
   ) %>%
   dplyr::select(Associated.Gene.Name, log2FC_02, direct_02, DE_02)
@@ -249,7 +249,7 @@ genes28 = as.data.frame(res28) %>%
   left_join(., mapping, by = "Ensembl.Gene.ID") %>%
   mutate(
     log2FC_28 = log2FoldChange,
-    DE_28 = ifelse(padj < 0.01, "yes", "no"),
+    DE_28 = ifelse(padj < 0.05 & log2FoldChange > 0.5, "yes", "no"),
     direct_28 = ifelse(log2FoldChange > 0, "up", "down")
   ) %>%
   dplyr::select(Associated.Gene.Name, log2FC_28, direct_28, DE_28)
@@ -262,34 +262,46 @@ class_df = cbind(genes02, genes28 %>% dplyr::select(-Associated.Gene.Name)) %>%
 
 # DE exclusively between 02, up
 write.table((class_df %>% filter(class == 'uniq_02', direct_02 == 'up'))$Associated.Gene.Name,
-            '../processed_data/degenes/02_up_lfc1_fdr05.csv',
+            '../processed_data/degenes/02_up_fdr01.csv',
             quote = F, col.names = F, row.names = F)
 
 # DE exclusively between 02, down
 write.table((class_df %>% filter(class == 'uniq_02', direct_02 == 'down'))$Associated.Gene.Name,
-            '../processed_data/degenes/02_down_lfc1_fdr05.csv',
+            '../processed_data/degenes/02_down_fdr01.csv',
             quote = F, col.names = F, row.names = F)
 
 # DE exclusively between 28, up
 write.table((class_df %>% filter(class == 'uniq_28', direct_02 == 'up'))$Associated.Gene.Name,
-            '../processed_data/degenes/28_up_lfc1_fdr05.csv',
+            '../processed_data/degenes/28_up_fdr01.csv',
             quote = F, col.names = F, row.names = F)
 
 # DE exclusively between 28, down
 write.table((class_df %>% filter(class == 'uniq_28', direct_02 == 'down'))$Associated.Gene.Name,
-            '../processed_data/degenes/28_down_lfc1_fdr05.csv',
+            '../processed_data/degenes/28_down_fdr01.csv',
             quote = F, col.names = F, row.names = F)
 
 # DE between 02 and 28, up
 write.table((class_df %>% filter(class == 'both', direct_02 == 'up'))$Associated.Gene.Name,
-            '../processed_data/degenes/02_and_28_up_lfc1_fdr05.csv',
+            '../processed_data/degenes/02_and_28_up_fdr01.csv',
             quote = F, col.names = F, row.names = F)
 
 # DE between 02 and 28, down
 write.table((class_df %>% filter(class == 'both', direct_02 == 'down'))$Associated.Gene.Name,
-            '../processed_data/degenes/02_and_28_down_lfc1_fdr05.csv',
+            '../processed_data/degenes/02_and_28_down_fdr01.csv',
             quote = F, col.names = F, row.names = F)
 ```
+
+```{r}
+# KEGG pathway enrichment
+
+```
+
+
+
+
+
+
+
 
 ```{r}
 # no need to run this if already saved dataframe.
