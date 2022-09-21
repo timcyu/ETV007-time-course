@@ -222,7 +222,7 @@ nrow(filter(class_df, class == 'none')) # 21820
 
 ```{r}
 ### Classify into 4 different patterns
-### DE means padj < 0.05 and LFC > 1 
+### DE means padj < 0.05 and |LFC| > 0.5 
 # =========================================
 # 1: not DE between 02, not DE between 08
 # 2: DE between 02, not DE between 08
@@ -260,41 +260,159 @@ class_df = cbind(genes02, genes28 %>% dplyr::select(-Associated.Gene.Name)) %>%
                  ifelse(DE_02 == 'no' & DE_28 == 'yes', 'uniq_28',
                  ifelse(DE_02 == 'yes' & DE_28 == 'yes', 'both', 'none'))))
 
-# DE exclusively between 02, up
-write.table((class_df %>% filter(class == 'uniq_02', direct_02 == 'up'))$Associated.Gene.Name,
-            '../processed_data/degenes/02_up.csv',
-            quote = F, col.names = F, row.names = F)
-
-# DE exclusively between 02, down
-write.table((class_df %>% filter(class == 'uniq_02', direct_02 == 'down'))$Associated.Gene.Name,
-            '../processed_data/degenes/02_down.csv',
-            quote = F, col.names = F, row.names = F)
-
-# DE exclusively between 28, up
-write.table((class_df %>% filter(class == 'uniq_28', direct_02 == 'up'))$Associated.Gene.Name,
-            '../processed_data/degenes/28_up.csv',
-            quote = F, col.names = F, row.names = F)
-
-# DE exclusively between 28, down
-write.table((class_df %>% filter(class == 'uniq_28', direct_02 == 'down'))$Associated.Gene.Name,
-            '../processed_data/degenes/28_down.csv',
-            quote = F, col.names = F, row.names = F)
-
-# DE between 02 and 28, up
-write.table((class_df %>% filter(class == 'both', direct_02 == 'up'))$Associated.Gene.Name,
-            '../processed_data/degenes/02_and_28_up.csv',
-            quote = F, col.names = F, row.names = F)
-
-# DE between 02 and 28, down
-write.table((class_df %>% filter(class == 'both', direct_02 == 'down'))$Associated.Gene.Name,
-            '../processed_data/degenes/02_and_28_down.csv',
-            quote = F, col.names = F, row.names = F)
+print(nrow(filter(class_df, class == 'uniq_02')))
+print(nrow(filter(class_df, class == 'uniq_28')))
+print(nrow(filter(class_df, class == 'both'))) 
+print(nrow(filter(class_df, class == 'none'))) 
 ```
 
 ```{r}
-# KEGG pathway enrichment
-class_df %>% filter(class == 'uniq_02', direct_02 == 'down')
+save_list <- function(l, fname) {
+  write.table(
+    l,
+    paste0('../processed_data/degenes/', fname, '.txt'),
+    quote = F, col.names = F, row.names = F
+  )
+}
+
+# DE exclusively between 02, up
+up_02_list = (
+  class_df %>% 
+    filter(class == 'uniq_02', direct_02 == 'up') %>% 
+    dplyr::select(Associated.Gene.Name)
+)
+save_list(up_02_list, 'up_02')
+
+# DE exclusively between 02, down
+down_02_list = (
+  class_df %>% 
+    filter(class == 'uniq_02', direct_02 == 'down') %>% 
+    dplyr::select(Associated.Gene.Name)
+)
+save_list(down_02_list, 'down_02')
+
+# DE exclusively between 28, up
+up_28_list = (
+  class_df %>% 
+    filter(class == 'uniq_28', direct_28 == 'up') %>% 
+    dplyr::select(Associated.Gene.Name)
+)
+save_list(up_28_list, 'up_28')
+
+# DE exclusively between 28, down
+down_28_list = (
+  class_df %>% 
+    filter(class == 'uniq_28', direct_28 == 'down') %>% 
+    dplyr::select(Associated.Gene.Name)
+)
+save_list(down_28_list, 'down_28')
+
+# DE between 02 (up) and 28 (up) 
+up02_up28_list = (
+  class_df %>% 
+    filter(class == 'both', direct_02 == 'up', direct_28 == 'up') %>% 
+    dplyr::select(Associated.Gene.Name)
+)
+save_list(up02_up28_list, 'up02_up28')
+
+# DE between 02 (up) and 28 (down) 
+up02_down28_list = (
+  class_df %>% 
+    filter(class == 'both', direct_02 == 'up', direct_28 == 'down') %>% 
+    dplyr::select(Associated.Gene.Name)
+)
+save_list(up02_down28_list, 'up02_down28')
+
+# DE between 02 (down) and 28 (up) 
+down02_up28_list = (
+  class_df %>% 
+    filter(class == 'both', direct_02 == 'down', direct_28 == 'up') %>% 
+    dplyr::select(Associated.Gene.Name)
+)
+save_list(down02_up28_list, 'down02_up28')
+
+# DE between 02 (down) and 28 (down) 
+down02_down28_list = (
+  class_df %>% 
+    filter(class == 'both', direct_02 == 'down', direct_28 == 'down') %>% 
+    dplyr::select(Associated.Gene.Name)
+)
+save_list(down02_down28_list, 'down02_down28')
 ```
+
+```{r}
+# we input the above gene lists into KEGG pathway enrichment analysis via http://bioinformatics.sdstate.edu/go/ using their default background option: 
+# all protein coding genes in the genome.
+
+# we then filter the outputted KEGG pathways by their:
+# 1. FDR < 0.05
+# 2. any obvious irrelevant pathways (i.e., cancer, viral infection, etc.)
+# 3. any super broad categories (i.e., meetabolic pathways)
+
+kegg_02_up = read.csv('../processed_data/degenes/up_02_kegg.csv', header = TRUE) %>%
+  mutate(comparison = 'up_02') %>%
+  filter(Enrichment.FDR < 0.05) %>%
+  filter(!Pathway %in% c('Coronavirus disease', 'Epstein-Barr virus infection', 
+                         'Neutrophil extracellular trap formation', 'Measles',
+                         'Osteoclast differentiation', 'Staphylococcus aureus infection', 
+                         'Hepatitis C', 'Influenza A',
+                         'Proteoglycans in cancer', 'Leishmaniasis', 
+                         'Acute myeloid leukemia', 'Cell adhesion molecules',
+                         'Hematopoietic cell lineage'))
+
+kegg_02_down = read.csv('../processed_data/degenes/down_02_kegg.csv', header = TRUE) %>%
+  mutate(comparison = 'down_02') %>%
+  filter(Enrichment.FDR < 0.05) %>%
+  filter(!Pathway %in% c('Metabolic pathways', 'Chemical carcinogenesis',
+                         'Drug metabolism'))
+
+kegg_28_up = read.csv('../processed_data/degenes/up_28_kegg.csv', header = TRUE) %>%
+  mutate(comparison = 'up_28') %>%
+  filter(Enrichment.FDR < 0.05) %>%
+  filter(!Pathway %in% c('Focal adhesion', 'Axon guidance', 'Human papillomavirus infection',
+                         'Amoebiasis', 'MicroRNAs in cancer', 'Malaria', 'Rheumatoid arthritis',
+                         'Hepatitis B', 'Proteoglycans in cancer'))
+
+kegg_28_down = read.csv('../processed_data/degenes/down_28_kegg.csv', header = TRUE) %>%
+  mutate(comparison = 'down_28') %>%
+  filter(Enrichment.FDR < 0.05)
+
+kegg_02down_28up = read.csv('../processed_data/degenes/down02_up28_kegg.csv', header = TRUE) %>%
+  mutate(comparison = 'down02_up28') %>%
+  filter(Enrichment.FDR < 0.05) %>%
+  filter(!Pathway %in% c('Chemical carcinogenesis', 'Drug metabolism', 'Platinum drug resistance',
+                         'Metabolic pathways', 'Pathways in cancer'))
+
+kegg_df = rbind(kegg_02_up, kegg_02_down, kegg_28_up, kegg_28_down, kegg_02down_28up)
+```
+
+```{r}
+# KEGG pathway plots
+plot_kegg <- function(data, fname, height, width, color) {
+  p = ggplot(data=data,
+         aes(x = reorder(Pathway, Fold.Enrichment), 
+             y = Fold.Enrichment, 
+             size = -log10(Enrichment.FDR))) + 
+  geom_point(alpha=1, shape=21, color="black", fill = color) +
+  scale_size(range = c(1, 5), name="-log10(Enrichment FDR)") +
+  coord_flip() +
+  labs(y = 'Fold Enrichment') +
+  theme(axis.title.y=element_blank()) +
+  theme(axis.title.y=element_blank(),
+        panel.grid.major.y = element_line(colour = "grey80", linetype = 'dashed')
+  ) 
+  
+  ggsave(plot=p, paste0('../figures/', fname, '.pdf'), height=height, width=width)
+}
+
+plot_kegg(kegg_02_up, 'kegg_02_up', height=4, width=8, color='#9F2B68')
+plot_kegg(kegg_02_down, 'kegg_02_down', height=4, width=8, color='#F675A8')
+plot_kegg(kegg_28_up, 'kegg_28_up', height=5, width=8, color='#7BA472')
+plot_kegg(kegg_28_down, 'kegg_28_down', height=2, width=8, color='#3B4463')
+plot_kegg(kegg_02down_28up, 'kegg_02down_28up', height=3, width=8, color='#FFA500')
+```
+
+
 
 
 
