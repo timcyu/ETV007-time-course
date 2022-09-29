@@ -85,39 +85,6 @@ ggplot(matrix, aes(x=Sample, y=Expression)) + geom_violin() + theme(axis.text.x 
 ```
 
 ```{r}
-# get total # significant genes, up-regulated and down-regulated that were q < 0.05 for all diet condition comparisons
-comparisons = list(list("0", "2"), list("0", "4"), list("0", "6"), list("0", "8"), list("2", "4"), list("2", "6"), list("2", "8"), list("4", "6"), list("4", "8"), list("6", "8"))
-table = data.frame("Condition1" = integer(), "Condition2" = integer(), "Total" = integer(), "Up" = integer(), "Down" = integer(), stringsAsFactors = FALSE)
-for(i in 1:10) {
-  res = results(dds, contrast = c("condition", as.numeric(comparisons[[i]][1]), as.numeric(comparisons[[i]][2])))
-  total = nrow(as.data.frame(subset(res, padj < 0.05)))
-  up = nrow(filter(as.data.frame(subset(res, padj < 0.05)), log2FoldChange > 0))
-  down = nrow(filter(as.data.frame(subset(res, padj < 0.05)), log2FoldChange < 0))
-  if(up + down != total) {
-    print("ERROR: # sig up/down-regulated genes does not add up to total.")
-  }
-  data_entry = data.frame("Condition1" = as.numeric(comparisons[[i]][1]), "Condition2" = as.numeric(comparisons[[i]][2]), "Total" = total, "Up" = up, "Down" = down, stringsAsFactors = FALSE)
-  table = rbind(table, data_entry)
-}
-```
-
-```{r}
-# heatmaps of significantly differentially-expressed genes
-a <- table %>% ggplot(aes(x = Condition1, y = Condition2)) + geom_tile(aes(fill = Total), color = 'black', size = 0.5, alpha = 0.9) +
-  scale_fill_viridis() + scale_x_continuous(breaks=seq(0,8,2)) + scale_y_continuous(breaks=seq(0,8,2)) + labs(x = "Weeks on Western Diet", y = "Weeks on Western Diet", title = "Total") + geom_text(aes(label = Total), size = 6) + theme(legend.position = "none")
-
-b <- table %>% ggplot(aes(x = Condition1, y = Condition2)) + geom_tile(aes(fill = Up), color = 'black', size = 0.5, alpha = 0.9) +
-  scale_fill_viridis() + scale_x_continuous(breaks=seq(0,8,2)) + scale_y_continuous(breaks=seq(0,8,2)) + labs(x = "Weeks on Western Diet", y = "Weeks on Western Diet", title = "Up-regulated") + geom_text(aes(label = Up), size = 6) + theme(legend.position = "none")
-
-c <- table %>% ggplot(aes(x = Condition1, y = Condition2)) + geom_tile(aes(fill = Down), color = 'black', size = 0.5, alpha = 0.9) +
-  scale_fill_viridis() + scale_x_continuous(breaks=seq(0,8,2)) + scale_y_continuous(breaks=seq(0,8,2)) + labs(x = "Weeks on Western Diet", y = "Weeks on Western Diet", title = "Down-regulated") + geom_text(aes(label = Down), size = 6) + theme(legend.position = "none")
-
-plot_grid(a,b,c, ncol = 3)
-#ggsave('../figures/rnaseq_pairwise_de_genes_heatmap.pdf', height = 5, width = 13)
-rm(a,b,c)
-```
-
-```{r}
 ### generate all volcano plots. We use ashr to shrink fold-changes.
 ### vertical lines indicate |FC| > 1.5
 ### horizontal lines indicate padj < 0.05
@@ -126,98 +93,62 @@ mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% disti
 # 2 vs 0
 res = lfcShrink(dds, contrast = c("condition", "2","0"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
-EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 60), title = 'CHOW versus WD2', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.5, pointSize = 2.0)
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', ylim = c(0, 60), title = 'CHOW versus WD2', pCutoff = 0.05, FCcutoff = 0.5, colAlpha = 0.5, pointSize = 2.0)
 ggsave('../figures/volcano/0vs2.pdf', height = 8, width = 6.5)
 
 # 4 vs 0
 res = lfcShrink(dds, contrast = c("condition", "4","0"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
-EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 40), title = 'CHOW versus WD4', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.5, pointSize = 2.0)
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', ylim = c(0, 40), title = 'CHOW versus WD4', pCutoff = 0.05, FCcutoff = 0.5, colAlpha = 0.5, pointSize = 2.0)
 ggsave('../figures/volcano/0vs4.pdf', height = 8, width = 6.5)
 
 # 6 vs 0
 res = lfcShrink(dds, contrast = c("condition", "6","0"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
-EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 55), title = 'CHOW versus WD6', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.5, pointSize = 2.0)
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', ylim = c(0, 55), title = 'CHOW versus WD6', pCutoff = 0.05, FCcutoff = 0.5, colAlpha = 0.5, pointSize = 2.0)
 ggsave('../figures/volcano/0vs6.pdf', height = 8, width = 6.5)
 
 # 8 vs 0
 res = lfcShrink(dds, contrast = c("condition", "8","0"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
-EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 55), title = 'CHOW versus WD8', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.5, pointSize = 2.0)
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', ylim = c(0, 55), title = 'CHOW versus WD8', pCutoff = 0.05, FCcutoff = 0.5, colAlpha = 0.5, pointSize = 2.0)
 ggsave('../figures/volcano/0vs8.pdf', height = 8, width = 6.5)
 
 # 4 vs. 2
 res = lfcShrink(dds, contrast = c("condition", "4","2"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
-EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 7.5), title = 'WD2 versus WD4', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.5, pointSize = 2.0)
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', ylim = c(0, 7.5), title = 'WD2 versus WD4', pCutoff = 0.05, FCcutoff = 0.5, colAlpha = 0.5, pointSize = 2.0)
 ggsave('../figures/volcano/2vs4.pdf', height = 8, width = 6.5)
 
 # 6 vs. 2
 res = lfcShrink(dds, contrast = c("condition", "6","2"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
-EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 10), title = 'WD2 versus WD6', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.5, pointSize = 2.0)
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', ylim = c(0, 10), title = 'WD2 versus WD6', pCutoff = 0.05, FCcutoff = 0.5, colAlpha = 0.5, pointSize = 2.0)
 ggsave('../figures/volcano/2vs6.pdf', height = 8, width = 6.5)
 
 # 8 vs. 2
 res = lfcShrink(dds, contrast = c("condition", "8","2"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
-EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 12.5), title = 'WD2 versus WD8', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.5, pointSize = 2.0)
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', ylim = c(0, 12.5), title = 'WD2 versus WD8', pCutoff = 0.05, FCcutoff = 0.5, colAlpha = 0.5, pointSize = 2.0)
 ggsave('../figures/volcano/2vs8.pdf', height = 8, width = 6.5)
 
 # 6 vs. 4
 res = lfcShrink(dds, contrast = c("condition", "6","4"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
-EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 5), title = 'WD4 versus WD6', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.5, pointSize = 2.0)
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', ylim = c(0, 5), title = 'WD4 versus WD6', pCutoff = 0.05, FCcutoff = 0.5, colAlpha = 0.5, pointSize = 2.0)
 ggsave('../figures/volcano/4vs6.pdf', height = 8, width = 6.5)
 
 # 8 vs. 4
 res = lfcShrink(dds, contrast = c("condition", "8","4"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
-EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-3, 3), ylim = c(0, 5), title = 'WD4 versus WD8', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.5, pointSize = 2.0)
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', ylim = c(0, 5), title = 'WD4 versus WD8', pCutoff = 0.05, FCcutoff = 0.5, colAlpha = 0.5, pointSize = 2.0)
 ggsave('../figures/volcano/4vs8.pdf', height = 8, width = 6.5)
 
 # 8 vs. 6
 res = lfcShrink(dds, contrast = c("condition", "8","6"), type = 'ashr')
 annotation = data.frame("Ensembl.Gene.ID" = rownames(res), stringsAsFactors = FALSE) %>% left_join(., mapping, by = "Ensembl.Gene.ID")
-EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', xlim = c(-1, 1), ylim = c(0, 3), title = 'WD6 versus WD8', pCutoff = 0.05, FCcutoff = log2(1.5), colAlpha = 0.5, pointSize = 2.0)
+EnhancedVolcano(res, lab = annotation$Associated.Gene.Name, x = 'log2FoldChange', y = 'padj', ylim = c(0, 3), title = 'WD6 versus WD8', pCutoff = 0.05, FCcutoff = 0.5, colAlpha = 0.5, pointSize = 2.0)
 ggsave('../figures/volcano/6vs8.pdf', height = 8, width = 6.5)
-```
-```{r}
-### Classify into 4 different patterns
-### DE means padj < 0.05 and >1.5 fold-change either up or down
-# =========================================
-# 1: not DE between 02, not DE between 08
-# 2: DE between 02, not DE between 08
-# 3: DE between 02, DE between 08
-# 4: not DE between 02, DE between 08
-mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% distinct()
-
-res02 = lfcShrink(dds, contrast = c("condition", "2","0"), type = 'ashr')
-genes02 = as.data.frame(res02) %>% 
-  tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% 
-  left_join(., mapping, by = "Ensembl.Gene.ID") %>%
-  mutate(FC_02 = 2 ** log2FoldChange,
-         DE_02 = ifelse(padj < 0.05 & (FC_02 > 3/2 | FC_02 < 2/3) , "yes", "no")) %>% dplyr::select(Associated.Gene.Name, FC_02, DE_02)
-
-res28 = lfcShrink(dds, contrast = c("condition", "8","2"), type = 'ashr')
-genes28 = as.data.frame(res28) %>% 
-  tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% 
-  left_join(., mapping, by = "Ensembl.Gene.ID") %>%
-  mutate(FC_28 = 2 ** log2FoldChange,
-         DE_28 = ifelse(padj < 0.05 & (FC_28 > 3/2 | FC_28 < 2/3) , "yes", "no")) %>% dplyr::select(Associated.Gene.Name, FC_28, DE_28)
-
-stopifnot(identical(genes02$Associated.Gene.Name, genes28$Associated.Gene.Name))
-
-class_df = cbind(genes02, genes28 %>% dplyr::select(-Associated.Gene.Name)) %>% 
-  mutate(class = ifelse(DE_02 == 'yes' & DE_28 == 'no', 'uniq_02',
-                 ifelse(DE_02 == 'no' & DE_28 == 'yes', 'uniq_28',
-                 ifelse(DE_02 == 'yes' & DE_28 == 'yes', 'both', 'none'))))
-
-nrow(filter(class_df, class == 'uniq_02')) # 485
-nrow(filter(class_df, class == 'uniq_28')) # 371
-nrow(filter(class_df, class == 'both')) # 60
-nrow(filter(class_df, class == 'none')) # 21820
 ```
 
 ```{r}
@@ -231,39 +162,101 @@ nrow(filter(class_df, class == 'none')) # 21820
 # separate by whether genes go up or done in each category
 
 mapping = key %>% dplyr::select(Ensembl.Gene.ID, Associated.Gene.Name) %>% distinct()
+class_df = data.frame(matrix(NA, ncol=1, nrow=nrow(annotation)))[-1]
+summary_df = data.frame("t1"=integer(), "t2"=integer(), "Total" =integer(), 
+                        "Up"=integer(), "Down"=integer(), stringsAsFactors=FALSE)
 
-res02 = lfcShrink(dds, contrast = c("condition", "2","0"), type = 'ashr')
-genes02 = as.data.frame(res02) %>% 
-  tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% 
-  left_join(., mapping, by = "Ensembl.Gene.ID") %>%
-  mutate(
-    log2FC_02 = log2FoldChange,
-    DE_02 = ifelse(padj < 0.05 & abs(log2FoldChange) > 0.5, "yes", "no"),
-    direct_02 = ifelse(log2FoldChange > 0, "up", "down")
-  ) %>%
-  dplyr::select(Associated.Gene.Name, log2FC_02, direct_02, DE_02)
+for(i in c(0, 2, 4, 6)) {
+  for (j in c(2, 4, 6, 8)) {
+    if(j > i) {
+      res = lfcShrink(dds, contrast = c("condition", j, i), type = 'ashr')
+      fcname = paste('log2FC_', i, j, sep='')
+      dename = paste('DE_', i, j, sep='')
+      dirname = paste('Direct_', i, j, sep='')
+  
+      genes = as.data.frame(res) %>% 
+        tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% 
+        left_join(., mapping, by = "Ensembl.Gene.ID") %>%
+        mutate(
+          !!fcname := log2FoldChange,
+          !!dename := ifelse(padj < 0.05 & abs(log2FoldChange) > 0.5, "yes", "no"),
+          !!dirname := ifelse(log2FoldChange > 0, "up", "down")
+        ) %>%
+        dplyr::select(Associated.Gene.Name, !!as.symbol(fcname), 
+                      !!as.symbol(dename), !!as.symbol(dirname))
+  
+      if(ncol(class_df) == 0) {
+        class_df = cbind(class_df, genes)
+      } else {
+        stopifnot(identical(class_df$Associated.Gene.Name, genes$Associated.Gene.Name))
+        class_df = cbind(class_df, genes %>% dplyr::select(-Associated.Gene.Name))
+      }
+      
+      num_total = nrow(filter(genes, !!as.symbol(dename) == "yes"))
+      num_up = nrow(filter(genes, !!as.symbol(dename) == "yes", !!as.symbol(dirname) == "up"))
+      num_down = nrow(filter(genes, !!as.symbol(dename) == "yes", !!as.symbol(dirname) == "down"))
+      num_category = data.frame("t1"=i, "t2"=j, "Total"=num_total, "Up"=num_up, 
+                              "Down"=num_down, stringsAsFactors=FALSE)
+      summary_df = rbind(summary_df, num_category)
+    }
+  }
+}
+```
+```{r}
+# heatmaps of significantly differentially-expressed genes
+a <- summary_df %>% ggplot(aes(x = t1, y = t2)) + geom_tile(aes(fill = Total), color = 'black', size = 0.5, alpha = 0.9) +
+  scale_fill_viridis() + scale_x_continuous(breaks=seq(0,8,2)) + scale_y_continuous(breaks=seq(0,8,2)) + labs(x = "Weeks on Western Diet", y = "Weeks on Western Diet", title = "Total") + geom_text(aes(label = Total), size = 6) + theme(legend.position = "none")
 
-res28 = lfcShrink(dds, contrast = c("condition", "8","2"), type = 'ashr')
-genes28 = as.data.frame(res28) %>% 
-  tibble::rownames_to_column(var = "Ensembl.Gene.ID") %>% 
-  left_join(., mapping, by = "Ensembl.Gene.ID") %>%
-  mutate(
-    log2FC_28 = log2FoldChange,
-    DE_28 = ifelse(padj < 0.05 & abs(log2FoldChange) > 0.5, "yes", "no"),
-    direct_28 = ifelse(log2FoldChange > 0, "up", "down")
-  ) %>%
-  dplyr::select(Associated.Gene.Name, log2FC_28, direct_28, DE_28)
+b <- summary_df %>% ggplot(aes(x = t1, y = t2)) + geom_tile(aes(fill = Up), color = 'black', size = 0.5, alpha = 0.9) +
+  scale_fill_viridis() + scale_x_continuous(breaks=seq(0,8,2)) + scale_y_continuous(breaks=seq(0,8,2)) + labs(x = "Weeks on Western Diet", y = "Weeks on Western Diet", title = "Up-regulated") + geom_text(aes(label = Up), size = 6) + theme(legend.position = "none")
 
-stopifnot(identical(genes02$Associated.Gene.Name, genes28$Associated.Gene.Name))
-class_df = cbind(genes02, genes28 %>% dplyr::select(-Associated.Gene.Name)) %>% 
-  mutate(class = ifelse(DE_02 == 'yes' & DE_28 == 'no', 'uniq_02',
+c <- summary_df %>% ggplot(aes(x = t1, y = t2)) + geom_tile(aes(fill = Down), color = 'black', size = 0.5, alpha = 0.9) +
+  scale_fill_viridis() + scale_x_continuous(breaks=seq(0,8,2)) + scale_y_continuous(breaks=seq(0,8,2)) + labs(x = "Weeks on Western Diet", y = "Weeks on Western Diet", title = "Down-regulated") + geom_text(aes(label = Down), size = 6) + theme(legend.position = "none")
+
+plot_grid(a,b,c, ncol = 3)
+ggsave('../figures/rnaseq_pairwise_de_genes_heatmap_fccutoff.pdf', height = 5, width = 13)
+rm(a,b,c)
+```
+
+```{r}
+# The RNA-seq profiles have a largely bi-phasic response. We can categorize genes accordingly.
+class_df = class_df %>% 
+  mutate(biphasic_class = ifelse(DE_02 == 'yes' & DE_28 == 'no', 'uniq_02',
                  ifelse(DE_02 == 'no' & DE_28 == 'yes', 'uniq_28',
                  ifelse(DE_02 == 'yes' & DE_28 == 'yes', 'both', 'none'))))
 
-print(nrow(filter(class_df, class == 'uniq_02')))
-print(nrow(filter(class_df, class == 'uniq_28')))
-print(nrow(filter(class_df, class == 'both'))) 
-print(nrow(filter(class_df, class == 'none'))) 
+print(nrow(filter(class_df, biphasic_class == 'uniq_02')))
+print(nrow(filter(class_df, biphasic_class == 'uniq_28')))
+print(nrow(filter(class_df, biphasic_class == 'both'))) 
+print(nrow(filter(class_df, biphasic_class == 'none'))) 
+```
+
+```{r}
+# how many genes are DE between 0-2, not any comparison after 2 weeks? 643
+only_02 = class_df %>% filter(DE_02 == "yes", 
+                              DE_24 == "no", DE_26 == "no", DE_28 == "no",
+                              DE_46 == "no", DE_48 == "no", DE_68 == "no")
+# up? 472
+nrow(only_02 %>% filter(Direct_02 == "up"))
+  
+# down? 171
+nrow(only_02 %>% filter(Direct_02 == "down"))
+
+# how many genes are DE between 2-4, not any comparison before or after that? 4 (2 up, 2 down)
+only_24 = class_df %>% filter(DE_24 == "yes", 
+                              DE_02 == "no", DE_46 == "no", 
+                              DE_48 == "no", DE_68 == "no")
+
+# how many genes are DE between 4-6, not any comparison before or after that? 2 down
+only_46 = class_df %>% filter(DE_46 == "yes", 
+                              DE_02 == "no", DE_04 == "no", 
+                              DE_24 == "no", DE_68 == "no")
+
+# how many genes are DE between 2-8, not any comparison before and must be positively increasing for rest?
+only_28 = class_df %>% filter(DE_28 == "yes", 
+                              DE_02 == "no",
+                              Direct_24 == "up", Direct_46 == "up", Direct_68 == "up")
+
 ```
 
 ```{r}
@@ -278,7 +271,7 @@ save_list <- function(l, fname) {
 # DE exclusively between 02, up
 up_02_list = (
   class_df %>% 
-    filter(class == 'uniq_02', direct_02 == 'up') %>% 
+    filter(biphasic_class == 'uniq_02', Direct_02 == 'up') %>% 
     dplyr::select(Associated.Gene.Name)
 )
 save_list(up_02_list, 'up_02')
@@ -286,7 +279,7 @@ save_list(up_02_list, 'up_02')
 # DE exclusively between 02, down
 down_02_list = (
   class_df %>% 
-    filter(class == 'uniq_02', direct_02 == 'down') %>% 
+    filter(biphasic_class == 'uniq_02', Direct_02 == 'down') %>% 
     dplyr::select(Associated.Gene.Name)
 )
 save_list(down_02_list, 'down_02')
@@ -294,7 +287,7 @@ save_list(down_02_list, 'down_02')
 # DE exclusively between 28, up
 up_28_list = (
   class_df %>% 
-    filter(class == 'uniq_28', direct_28 == 'up') %>% 
+    filter(biphasic_class == 'uniq_28', Direct_28 == 'up') %>% 
     dplyr::select(Associated.Gene.Name)
 )
 save_list(up_28_list, 'up_28')
@@ -302,7 +295,7 @@ save_list(up_28_list, 'up_28')
 # DE exclusively between 28, down
 down_28_list = (
   class_df %>% 
-    filter(class == 'uniq_28', direct_28 == 'down') %>% 
+    filter(biphasic_class == 'uniq_28', Direct_28 == 'down') %>% 
     dplyr::select(Associated.Gene.Name)
 )
 save_list(down_28_list, 'down_28')
@@ -310,7 +303,7 @@ save_list(down_28_list, 'down_28')
 # DE between 02 (up) and 28 (up) 
 up02_up28_list = (
   class_df %>% 
-    filter(class == 'both', direct_02 == 'up', direct_28 == 'up') %>% 
+    filter(biphasic_class == 'both', Direct_02 == 'up', Direct_28 == 'up') %>% 
     dplyr::select(Associated.Gene.Name)
 )
 save_list(up02_up28_list, 'up02_up28')
@@ -318,7 +311,7 @@ save_list(up02_up28_list, 'up02_up28')
 # DE between 02 (up) and 28 (down) 
 up02_down28_list = (
   class_df %>% 
-    filter(class == 'both', direct_02 == 'up', direct_28 == 'down') %>% 
+    filter(biphasic_class == 'both', Direct_02 == 'up', Direct_28 == 'down') %>% 
     dplyr::select(Associated.Gene.Name)
 )
 save_list(up02_down28_list, 'up02_down28')
@@ -326,7 +319,7 @@ save_list(up02_down28_list, 'up02_down28')
 # DE between 02 (down) and 28 (up) 
 down02_up28_list = (
   class_df %>% 
-    filter(class == 'both', direct_02 == 'down', direct_28 == 'up') %>% 
+    filter(biphasic_class == 'both', Direct_02 == 'down', Direct_28 == 'up') %>% 
     dplyr::select(Associated.Gene.Name)
 )
 save_list(down02_up28_list, 'down02_up28')
@@ -334,7 +327,7 @@ save_list(down02_up28_list, 'down02_up28')
 # DE between 02 (down) and 28 (down) 
 down02_down28_list = (
   class_df %>% 
-    filter(class == 'both', direct_02 == 'down', direct_28 == 'down') %>% 
+    filter(biphasic_class == 'both', Direct_02 == 'down', Direct_28 == 'down') %>% 
     dplyr::select(Associated.Gene.Name)
 )
 save_list(down02_down28_list, 'down02_down28')
@@ -348,7 +341,6 @@ save_list(down02_down28_list, 'down02_down28')
 # 1. FDR < 0.05
 # 2. any obvious irrelevant pathways (i.e., cancer, viral infection, etc.)
 # 3. any super broad categories (i.e., meetabolic pathways)
-
 kegg_02_up = read.csv('../processed_data/degenes/up_02_kegg.csv', header = TRUE) %>%
   mutate(comparison = 'up_02') %>%
   filter(Enrichment.FDR < 0.05) %>%
@@ -412,15 +404,6 @@ plot_kegg(kegg_28_down, 'kegg_28_down', height=2, width=8, color='#3B4463')
 plot_kegg(kegg_02down_28up, 'kegg_02down_28up', height=3, width=8, color='#FFA500')
 ```
 
-
-
-
-
-
-
-
-
-
 ```{r}
 # no need to run this if already saved dataframe.
 # lets look at these genes more closely, but first, get FPKM measurements for each gene.
@@ -452,6 +435,50 @@ write.csv(all_genes, '../processed_data/datasets/RNAseq_FPKM.csv', row.names = F
 ```{r}
 all_genes = read.csv('../processed_data/datasets/RNAseq_FPKM.csv', header = TRUE, check.names = FALSE)
 ```
+
+```{r}
+all_genes %>% 
+  dplyr::select(Treatment, Hmgcr, Cidea, Enho, Hal, Cd36) %>%
+  gather(Feature, Value, -Treatment) %>%
+  ggplot(aes(y = log10(Value+1), x = Treatment)) + 
+  geom_boxplot(outlier.shape = NA, aes(fill = Treatment), alpha = 0.6) + 
+  geom_jitter(aes(color = Treatment), alpha = 0.7) +
+  scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41')) +
+  scale_fill_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41')) +
+  facet_wrap(~Feature, scales = 'free') + 
+  theme(axis.title.x = element_blank()) + 
+  labs(y = 'log10(FPKM + 1)')
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ```{r}
 # output genes that are significantly DE between 02 and 28,
