@@ -63,7 +63,7 @@ levels(vsd$condition) = c("CHOW8", "WD2", "WD4", "WD6", "WD8")
 plotPCA(vsd) + 
   scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'), 
                      name = "Treatment")
-ggsave('../figures/rnaseq_pca.pdf', height = 4.5, width = 5)
+#ggsave('../figures/rnaseq_pca.pdf', height = 4.5, width = 5)
 ```
 Check normalized data.
 ```{r}
@@ -166,7 +166,8 @@ Plot heat maps of significantly DE genes (padj < 0.05, |log2FC| > 0.5).
 ```{r}
 a <- summary_df %>% 
   ggplot(aes(x=t1, y=t2)) + 
-  geom_tile(fill='white', color='black', size=0.5, alpha = 0.9) + 
+  geom_tile(aes(fill=Total), color='black', size=0.5, alpha = 0.9) + 
+  scale_fill_gradient(low="#f1f1f1", high="#696969") + 
   scale_x_continuous(breaks=seq(0,8,2)) + 
   scale_y_continuous(breaks=seq(0,8,2)) + 
   labs(x="Weeks on Western Diet", y="Weeks on Western Diet", title="Total") + 
