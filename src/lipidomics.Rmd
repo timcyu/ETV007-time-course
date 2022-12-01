@@ -35,7 +35,7 @@ liverData = liverData %>% filter(!ID %in% c(39,53))
 autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), 
          data = liverData, colour = 'Treatment', size = 2.5) + 
   scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
-ggsave('../figures/lipidomics_liver_pca.pdf', height = 3.5, width = 5)
+#ggsave('../figures/lipidomics_liver_pca.pdf', height = 3.5, width = 5)
 ```
 
 ```{r}
@@ -120,7 +120,7 @@ pval_table %>%
     scale_fill_manual(values = colors) +
     facet_grid(~Comparison, scales = 'fixed') +
     labs(x = "log2(Fold-change)", y = "log10(Abundance)")
-ggsave('../figures/lipidomics_liver_bubble_plot.pdf', height = 5.5, width = 18)
+#ggsave('../figures/lipidomics_liver_bubble_plot.pdf', height = 5.5, width = 18)
 ```
 
 ```{r}
@@ -166,7 +166,7 @@ autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = 
 ```{r}
 # PCA plot of plasma lipidomics data
 autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), data = plasmaData, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
-ggsave('../figures/lipidomics_plasma_pca.pdf', height = 3.5, width = 5)
+#ggsave('../figures/lipidomics_plasma_pca.pdf', height = 3.5, width = 5)
 ```
 ```{r}
 # Generate dataframe for plasma lipidomics bubble plot
@@ -194,7 +194,7 @@ pval_table %>%
     scale_fill_manual(values = colors) +
     facet_grid(~Comparison, scales = 'fixed') +
     labs(x = "log2(Fold-change)", y = "log10(Abundance)")
-ggsave('../figures/lipidomics_plasma_bubble_plot.pdf', height = 5.5, width = 18)
+#ggsave('../figures/lipidomics_plasma_bubble_plot.pdf', height = 5.5, width = 18)
 ```
 
 ```{r}
@@ -216,8 +216,8 @@ order = c(unique((CE_data %>% filter(Treatment == 'Chow8'))$ID),
           unique((CE_data %>% filter(Treatment == 'WD8'))$ID))
 
 CE_data %>% ggplot(aes(x = Feature, y = as.factor(ID))) + 
-  geom_tile(aes(fill = Value), alpha = 1, color = 'white', size = 0.1) + 
-  scale_fill_distiller(palette = "Spectral") + 
+  geom_tile(aes(fill = Value), alpha = 1, color = 'black', size = 0.1) + 
+  scale_fill_gradient2(low = "#0000FF", mid = "#FFFFFF", high ="#FF0000", midpoint=0) + 
   scale_y_discrete(limits = rev(factor(order))) + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank())
@@ -232,7 +232,8 @@ plasma_TG48_data = scaled_plasmaData %>%
   gather(Feature, Value, 3:ncol(.)) %>%
   separate(col = 'Feature', into = c("Class", "Chain"), sep = "\\.", 
           remove = FALSE, extra = 'drop') %>%
-  filter(Class == 'TG', Chain == 48)
+  filter(Class == 'TG', Chain == 48) %>%
+  filter(!ID %in% c(55,56)) # 2 outliers
 
 order = c(unique((plasma_TG48_data %>% filter(Treatment == 'Chow8'))$ID),
           unique((plasma_TG48_data %>% filter(Treatment == 'WD2'))$ID),
@@ -242,8 +243,8 @@ order = c(unique((plasma_TG48_data %>% filter(Treatment == 'Chow8'))$ID),
 
 plasma_TG48_data %>%
   ggplot(aes(x = Feature, y = as.factor(ID))) + 
-  geom_tile(aes(fill = Value), alpha = 1, color = 'white', size = 0.1) + 
-  scale_fill_distiller(palette = "Spectral") + 
+  geom_tile(aes(fill = Value), alpha = 1, color = 'black', size = 0.1) + 
+  scale_fill_gradient2(low = "#0000FF", mid = "#FFFFFF", high ="#FF0000", midpoint=0) + 
   scale_y_discrete(limits = rev(factor(order))) + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank())
@@ -291,22 +292,42 @@ totalLipidbyClass_plasma = plasmaData %>%
 lipids_in_common = intersect(totalLipidbyClass_liver$RefinedClass, totalLipidbyClass_plasma$RefinedClass)
  
 df = data.frame("LipidClass" = character(), "Spearman_corr" = numeric(), "p_val" = numeric())
-for (lipid in lipids_in_common) {
-  lipid_in_liver = totalLipidbyClass_liver %>% filter(RefinedClass == lipid)
-  lipid_in_plasma = totalLipidbyClass_plasma %>% filter(RefinedClass == lipid)
-   
-  combined = left_join(lipid_in_liver, lipid_in_plasma, by = 'ID')
-  corr = cor.test(combined$totalLipid.x, combined$totalLipid.y, 
-                  method=c("pearson", "kendall", "spearman"))$estimate
-  p = cor.test(combined$totalLipid.x, combined$totalLipid.y, 
-                  method=c("pearson", "kendall", "spearman"))$p.value
-  
-  df = rbind(df, data.frame("LipidClass" = lipid, "Spearman_corr" = corr, "p_val" = p))
+for (lipid1 in lipids_in_common) {
+  lipid_in_liver = totalLipidbyClass_liver %>% filter(RefinedClass == lipid1)
+  for (lipid2 in lipids_in_common) {
+    lipid_in_plasma = totalLipidbyClass_plasma %>% filter(RefinedClass == lipid2)
+    combined = left_join(lipid_in_liver, lipid_in_plasma, by = 'ID')
+    corr = cor.test(combined$totalLipid.x, 
+                    combined$totalLipid.y, 
+                    method=c("pearson", "kendall", "spearman"))$estimate
+    p = cor.test(combined$totalLipid.x, 
+                 combined$totalLipid.y, 
+                 method=c("pearson", "kendall", "spearman"))$p.value
+    df = rbind(df, data.frame("Lipid_liver" = lipid1,
+                              "Lipid_plasma" = lipid2,
+                              "Spearman_corr" = corr,
+                              "p_val" = p))
+  }
 }
 
-# save df
-write.csv(df, '../processed_data/misc/liver_plasma_lipid_class_corr.csv', row.names=FALSE)
+# save dataframe
+write.csv(df, '../processed_data/misc/liver_plasma_lipid_class_pairwise_corr.csv', row.names=FALSE)
 
+df %>%
+  ggplot(aes(x=Lipid_liver, y=Lipid_plasma)) +
+  geom_tile(aes(fill=Spearman_corr), alpha=1, color='black', size=0.1) +
+  scale_fill_gradient2(low = "#0000FF", mid = "#FFFFFF", high ="#FF0000", midpoint=0) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+ggsave('../figures/lipidomics_plasma_liver_total_corr_heatmap.pdf', height = 4, width = 6)
+```
+
+```{r}
+left_join(totalLipidbyClass_liver, totalLipidbyClass_plasma, by=c("ID","RefinedClass", "Treatment")) %>%
+  ggplot(aes(x=totalLipid.x, y=totalLipid.y)) +
+  geom_point() +
+  facet_wrap(~RefinedClass, scales='free')
+```
+```{r}
 colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0", "#9F044D", 
             "#077E97", "#606060", "#fcfc81")
 
@@ -320,9 +341,6 @@ df %>% ggplot(aes(x = LipidClass, y = Spearman_corr)) +
 
 ggsave('../figures/lipidomics_plasma_liver_total_corr.pdf', height = 5, width = 10)
 ```
-
-
-
 
 
 
