@@ -10,16 +10,28 @@ library(ggplot2)
 library(ggfortify)
 require(cowplot)
 theme_set(theme_cowplot())
+source('utils/utils.R')
 ```
 
 ```{r}
 # read in data
-BA_totalpool = read.csv('../processed_data/datasets/BA_totalpool.csv', header = TRUE, stringsAsFactors = FALSE,
-                        check.names = FALSE)
+BA_totalpool = read.csv('../processed_data/datasets/BA_totalpool.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
 ```
 
 ```{r}
 # PCA
 autoplot(prcomp(BA_totalpool[-c(1,2)], scale. = TRUE), data = BA_totalpool, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
 ggsave('../figures/bile_acids_totalpool_pca.pdf', height = 3.5, width = 5)
+```
+
+```{r}
+# bubble plot
+BA_totalpool_sub = BA_totalpool %>% select(
+  ID, Treatment,
+  `T-a-MCA`, `T-b-MCA`, `T-o-MCA`, `TCDCA`, `TCA`, `TDCA`, `TLCA`, `b-MCA`, `CA`
+)
+
+bubdata = makeBubbleData(BA_totalpool_sub)
+bubp = getBubbleSignificance(bubdata)
+makeBubblePlot(bubp)
 ```

@@ -21,11 +21,12 @@ data = read.csv('../processed_data/datasets/Microbiome_otu_rarefied.csv', header
 ```{r}
 # PCA
 autoplot(prcomp(data[-c(1,2)], scale. = TRUE), data = data, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
-ggsave('../figures/microbiome_rarefied_pca.pdf', height = 3.5, width = 5)
+#ggsave('../figures/microbiome_rarefied_pca.pdf', height = 3.5, width = 5)
 ```
 ```{r}
 # load in taxonomic information
-tax_info = read.csv('../raw_data/Mappings/Microbiome_tax_class_rarefied.csv', header = TRUE, stringsAsFactors = FALSE)
+tax_info = read.csv('../raw_data/Mappings/Microbiome_tax_class_rarefied.csv', header = TRUE,
+                    stringsAsFactors = FALSE)
 ```
 
   Rank1     Rank2    Rank3     Rank4     Rank5     Rank6     Rank7
@@ -45,8 +46,8 @@ data %>%
 ```
 ```{r}
 # load in total BA
-BA_totalpool = read.csv('../processed_data/datasets/BA_totalpool.csv', header = TRUE, stringsAsFactors = FALSE,
-                        check.names = FALSE)
+BA_totalpool = read.csv('../processed_data/datasets/BA_totalpool.csv', header = TRUE,
+                        stringsAsFactors = FALSE, check.names = FALSE)
 ```
 
 ```{r}
@@ -238,4 +239,24 @@ intestinal_BA_x_micro = read.csv('../processed_data/correlations/intestinal_ba_x
 total_BA_x_micro = read.csv('../processed_data/correlations/total_ba_x_microbiome.csv', 
                             header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
   left_join(., (tax_info %>% select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
+```
+
+```{r}
+# positive correlation plot between single bacteriodetes species and T-b-MCA
+ggplot(data=NULL,
+  aes(x=bacteroidetes_mat$`4457872`, y=BA_totalpool_mat$`T-b-MCA`)) +
+  geom_point(size=2) + 
+  annotate("text", x=5000, y=20, size=4, label="italic(bicor) == 0.77", parse=TRUE) +
+  labs(y='T-b-MCA (nmol)', x='bacteriodetes species 4457872 (rarefied counts)')
+ggsave('../figures/bacteroidete_species_x_TbMCA_pos.pdf', height = 4.3, width = 5)
+```
+
+```{r}
+# negative correlation plot between single bacteriodetes species and T-b-MCA
+ggplot(data=NULL,
+  aes(x=bacteroidetes_mat$`183446`, y=BA_totalpool_mat$`T-b-MCA`)) +
+  geom_point(size=2) + 
+  annotate("text", x=4000, y=20, size=4, label="italic(bicor) == -0.63", parse=TRUE) +
+  labs(y='T-b-MCA (nmol)', x='bacteriodetes species 183446 (rarefied counts)')
+ggsave('../figures/bacteroidete_species_x_TbMCA_neg.pdf', height = 4.3, width = 5)
 ```
