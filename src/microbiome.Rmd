@@ -243,20 +243,34 @@ total_BA_x_micro = read.csv('../processed_data/correlations/total_ba_x_microbiom
 
 ```{r}
 # positive correlation plot between single bacteriodetes species and T-b-MCA
+r = cor(
+  bacteroidetes_mat$`4457872`, 
+  BA_totalpool_mat$`T-b-MCA`,  
+  method = "pearson"
+)
+
 ggplot(data=NULL,
   aes(x=bacteroidetes_mat$`4457872`, y=BA_totalpool_mat$`T-b-MCA`)) +
+  geom_smooth(method='lm', se=FALSE) +
   geom_point(size=2) + 
-  annotate("text", x=5000, y=20, size=4, label="italic(bicor) == 0.77", parse=TRUE) +
+  annotate("text", x=5000, y=20, size=5, label="italic(r) == 0.76", parse=TRUE) +
   labs(y='T-b-MCA (nmol)', x='bacteriodetes species 4457872 (rarefied counts)')
 ggsave('../figures/bacteroidete_species_x_TbMCA_pos.pdf', height = 4.3, width = 5)
 ```
 
 ```{r}
 # negative correlation plot between single bacteriodetes species and T-b-MCA
+r = cor(
+  bacteroidetes_mat$`183446`, 
+  BA_totalpool_mat$`T-b-MCA`,  
+  method = "pearson"
+)
+
 ggplot(data=NULL,
   aes(x=bacteroidetes_mat$`183446`, y=BA_totalpool_mat$`T-b-MCA`)) +
+  geom_smooth(method='lm', se=FALSE) +
   geom_point(size=2) + 
-  annotate("text", x=4000, y=20, size=4, label="italic(bicor) == -0.63", parse=TRUE) +
+  annotate("text", x=4000, y=20, size=5, label="italic(r) == -0.64", parse=TRUE) +
   labs(y='T-b-MCA (nmol)', x='bacteriodetes species 183446 (rarefied counts)')
 ggsave('../figures/bacteroidete_species_x_TbMCA_neg.pdf', height = 4.3, width = 5)
 ```

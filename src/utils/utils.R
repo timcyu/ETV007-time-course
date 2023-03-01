@@ -114,7 +114,8 @@ makeBubblePlot <- function(
   bubble_range=list(),
   bubble_breaks=list(),
   ylim=list(),
-  xlim=list()
+  xlim=list(),
+  abundance=TRUE
   ) {
   '
   makes a bubble plot.
@@ -127,6 +128,7 @@ makeBubblePlot <- function(
     bubble_breaks : list. ex. c(0.01,0.1,1,5,9)
     ylim : list with two floats. ex. c(0,7)
     xlim : list with two floats. ex. c(-0.5,5.5)
+    abundance : boolean. y-axis is abundance or categorical
   '
   if(length(colors) == 0) {
     colors = brewer.pal(12, "Set3")
@@ -172,46 +174,80 @@ makeBubblePlot <- function(
       ceiling(max(log10(pval_df$Median)))+1
     )
   }
+  if(abundance == TRUE) {
+    plot = pval_df %>%
+      mutate(log2FoldChange = log2(FoldChange)) %>%
+      mutate(log10pval = -log10(pval)) %>%
+      mutate(log10Abundance = log10(Median)) %>%
+      arrange(desc(log10Abundance)) %>%
+      ggplot(
+        aes(x=log2FoldChange, 
+            y=log10Abundance, 
+            size=log10pval,
+            fill=Feat)
+      ) +
+      geom_vline(
+        xintercept=0, 
+        linetype='solid', 
+        color='black'
+      ) +
+      geom_hline(
+        yintercept=y_lines, 
+        linetype='dotted',
+        color='grey70',
+        size=1
+      ) +
+      geom_point(
+        aes(fill=Feat), 
+        alpha=0.9,
+        color='black',
+        pch=21, 
+        stroke=1
+      ) +
+      scale_size(
+        range=bubble_range,
+        breaks=bubble_breaks,
+        name="Significance -log10(P)", 
+      ) +
+      ylim(ylim) +
+      xlim(xlim) +
+      scale_fill_manual(values=colors) +
+      facet_grid(~Comparison, scales='fixed') +
+      labs(x="log2(Fold-change)", y="log10(Abundance)")
+  } else {
+    plot = pval_df %>%
+      mutate(log2FoldChange = log2(FoldChange)) %>%
+      mutate(log10pval = -log10(pval)) %>%
+      #arrange(desc(log10Abundance)) %>%
+      ggplot(
+        aes(x=log2FoldChange, 
+            y=Feat, 
+            size=log10pval,
+            fill=Feat)
+      ) +
+      geom_vline(
+        xintercept=0, 
+        linetype='solid', 
+        color='black'
+      ) +
+      geom_point(
+        aes(fill=Feat), 
+        alpha=0.9,
+        color='black',
+        pch=21, 
+        stroke=1
+      ) +
+      scale_size(
+        range=bubble_range,
+        breaks=bubble_breaks,
+        name="Significance -log10(P)", 
+      ) +
+      xlim(xlim) +
+      scale_fill_manual(values=colors) +
+      facet_grid(~Comparison, scales='fixed') +
+      labs(x="log2(Fold-change)", y="feature")
+  }
   
-  plot = pval_df %>%
-    mutate(log2FoldChange = log2(FoldChange)) %>%
-    mutate(log10pval = -log10(pval)) %>%
-    mutate(log10Abundance = log10(Median)) %>%
-    arrange(desc(log10Abundance)) %>%
-    ggplot(
-      aes(x=log2FoldChange, 
-          y=log10Abundance, 
-          size=log10pval,
-          fill=Feat)
-    ) +
-    geom_vline(
-      xintercept=0, 
-      linetype='solid', 
-      color='black'
-    ) +
-    geom_hline(
-      yintercept=y_lines, 
-      linetype='dotted',
-      color='grey70',
-      size=1
-    ) +
-    geom_point(
-      aes(fill=Feat), 
-      alpha=0.9,
-      color='black',
-      pch=21, 
-      stroke=1
-    ) +
-    scale_size(
-      range=bubble_range,
-      breaks=bubble_breaks,
-      name="Significance -log10(P)", 
-    ) +
-    ylim(ylim) +
-    xlim(xlim) +
-    scale_fill_manual(values=colors) +
-    facet_grid(~Comparison, scales='fixed') +
-    labs(x="log2(Fold-change)", y="log10(Abundance)")
   return(plot)
 }
 
