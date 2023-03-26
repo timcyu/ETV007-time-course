@@ -18,35 +18,26 @@ makeBubbleData <- function(df, islipidomics=TRUE) {
     an omics dataset. Must contain the columns `ID` and
     `treatment`, while all other columns are a measured
     lipid, bile acid, etc.
-  islipidomics : boolean
-    denotes if the dataset is a lipidomics dataset.
   "
-  if(islipidomics == TRUE) {
-    bubble_df = df %>%
-        gather(f, v, -c("ID", "Treatment")) %>%
-        separate(col="f", into="class", sep="\\.", 
-                 remove=FALSE, extra='drop') %>%
-        mutate(Feat = ifelse(
-          grepl("PE[.]O", f), "PE_O",
-          ifelse(grepl("PE[.]P", f), "PE_P", 
-                 class)
-          )
-        ) %>%
-        select(-class) %>%
-        group_by(ID, Feat) %>%
-        drop_na() %>%
-        mutate(Val = sum(v)) %>%
-        ungroup() %>%
-        select(ID, Treatment, Feat, Val) %>%
-        distinct()
-  }
-  else {
-    bubble_df = df %>% 
-      gather(Feat, Val, -c("ID", "Treatment"))
-  }
+  bubble_df = df %>%
+      gather(f, v, -c("ID", "Treatment")) %>%
+      separate(col="f", into="class", sep="\\.", 
+              remove=FALSE, extra='drop') %>%
+      mutate(Feat = ifelse(
+        grepl("PE[.]O", f), "PE_O",
+        ifelse(grepl("PE[.]P", f), "PE_P", 
+                class)
+        )
+      ) %>%
+      select(-class) %>%
+      group_by(ID, Feat) %>%
+      drop_na() %>%
+      mutate(Val = sum(v)) %>%
+      ungroup() %>%
+      select(ID, Treatment, Feat, Val) %>%
+      distinct()
   return(bubble_df)
 }
-
 
 getBubbleSignificance <- function(bubble_df, thresh=0.05) {
   '
@@ -101,7 +92,8 @@ getBubbleSignificance <- function(bubble_df, thresh=0.05) {
     pvals = rbind(pvals, row)
   }
   pvals = pvals %>% mutate(
-    Significant = ifelse(pval < thresh, "yes", "no")
+    Significant = ifelse(pval < thresh, "yes", "no"),
+    pval = ifelse(pval < 1e-16, 1e-16, pval)
   )
   return(pvals)
 }
@@ -115,7 +107,8 @@ makeBubblePlot <- function(
   bubble_breaks=list(),
   ylim=list(),
   xlim=list(),
-  abundance=TRUE
+  abundance=TRUE,
+  order_by=FALSE
   ) {
   '
   makes a bubble plot.
@@ -129,6 +122,7 @@ makeBubblePlot <- function(
     ylim : list with two floats. ex. c(0,7)
     xlim : list with two floats. ex. c(-0.5,5.5)
     abundance : boolean. y-axis is abundance or categorical
+    order_by : column to order by, default is NULL. 
   '
   if(length(colors) == 0) {
     colors = brewer.pal(12, "Set3")
@@ -218,7 +212,6 @@ makeBubblePlot <- function(
     plot = pval_df %>%
       mutate(log2FoldChange = log2(FoldChange)) %>%
       mutate(log10pval = -log10(pval)) %>%
-      #arrange(desc(log10Abundance)) %>%
       ggplot(
         aes(x=log2FoldChange, 
             y=Feat, 

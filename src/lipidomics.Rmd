@@ -12,6 +12,7 @@ library(DescTools)
 library(RColorBrewer)
 require(cowplot)
 theme_set(theme_cowplot())
+source('utils/utils.R')
 ```
 
 Liver lipidomics 
@@ -37,90 +38,16 @@ autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = T
   scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
 #ggsave('../figures/lipidomics_liver_pca.pdf', height = 3.5, width = 5)
 ```
-
 ```{r}
-# Generate data frame for bubble plot
-generate_bubble_data <- function(data) {
-  totalLipidByClass = data %>%
-  gather(Feature, Value, 3:ncol(.)) %>%
-  separate(col = 'Feature', into = c("Class"), sep = "\\.", remove = FALSE, extra = 'drop') %>%
-  mutate(RefinedClass = ifelse(grepl("PE[.]O", Feature), "PE_O",
-                        ifelse(grepl("PE[.]P", Feature), "PE_P", Class))) %>%
-  select(-Class) %>%
-  group_by(ID, RefinedClass) %>%
-  drop_na() %>%
-  mutate(totalLipid = sum(Value)) %>%
-  ungroup() %>%
-  select(ID, Treatment, RefinedClass, totalLipid) %>%
-  distinct() %>%
-  group_by(RefinedClass) %>%
-  mutate(n_groups = length(unique(Treatment))) %>%
-  filter(n_groups == 5) %>%
-  ungroup() %>%
-  select(-n_groups)
-
-  # Use Dunnett's test to get significance of each lipid class at WD2,4,6,8 relative to control
-  totalLipidByClass$Treatment <- as.factor(totalLipidByClass$Treatment)
-  lipidClasses = levels(factor(totalLipidByClass$RefinedClass))
-  pval_table = data.frame("Comparison" = character(), "pval" = double(), "Median" = double(), 
-                          "FC" = double(), "RefinedClass" = character(), stringsAsFactors = FALSE)
-
-  for(i in lipidClasses) {
-    result = DunnettTest(totalLipid ~ Treatment, 
-                       data = filter(totalLipidByClass, RefinedClass == i), 
-                       control = 'Chow8')
-    FC = totalLipidByClass %>% 
-      filter(RefinedClass == i) %>% 
-      group_by(Treatment) %>% 
-      mutate(Median = median(totalLipid)) %>% 
-      ungroup() %>%
-      select(Treatment, RefinedClass, Median) %>% 
-      distinct() %>% 
-      mutate(FC = Median / filter(., Treatment == 'Chow8')$Median) %>%
-      filter(Treatment != 'Chow8') %>% 
-      mutate(Comparison = paste(Treatment, "-", "Chow8", sep = "")) %>% 
-      select(Comparison, Median, FC, RefinedClass)
-  
-    # combine the significance and fold-change into single entry
-    entry = as.data.frame(result$Chow8) %>% 
-      select(pval) %>% 
-      tibble::rownames_to_column(var = "Comparison") %>% 
-      left_join(., FC, by = "Comparison")
-
-    pval_table = rbind(pval_table, entry)
-  }
-  return(pval_table)
-}
-```
-
-```{r}
-# Generate dataframe for liver lipidomics bubble plot
-pval_table = generate_bubble_data(liverData)
-pval_table = pval_table %>% mutate(significant = ifelse(pval < 0.05, "yes", "no"))
-```
-
-```{r}
-# Liver lipidomics bubble plot of diet vs. fold-change. Fold-change is calculated using the median lipid abundance for each diet. Size of bubble highlights signficance (from Dunnett's test that does post hoc pairwise multiple comparisons procedure)
+# make bubble plot
 colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0", "#9F044D", 
             "#077E97", "#C5944E", "#034E61", "#FFA040", "#606060", "#fcfc81")
 
-pval_table %>%
-  mutate(log2FC = log2(FC)) %>%
-  mutate(log10P = -log10(pval)) %>%
-  mutate(log10Abundance = log10(Median)) %>%
-  arrange(desc(log10Abundance)) %>%
-  mutate(Significant = ifelse(pval < 0.05, "yes", "no")) %>%
-  ggplot(aes(x=log2FC, y=log10Abundance, size=log10P, fill=RefinedClass)) +
-    geom_vline(xintercept = 0, linetype = 'solid', color = 'black') +
-    geom_hline(yintercept = c(0, 2, 4, 6), linetype = 'dotted', color = 'grey70', size = 1) +
-    geom_point(alpha=0.9, aes(fill = RefinedClass), color = 'black', pch = 21, stroke = 1) +
-    scale_size(range = c(5, 20), name="Significance -log10(P)", breaks=c(0.01,0.1,1,5,9)) +
-    ylim(0, 7) +
-    xlim(-0.5, 5.5) +
-    scale_fill_manual(values = colors) +
-    facet_grid(~Comparison, scales = 'fixed') +
-    labs(x = "log2(Fold-change)", y = "log10(Abundance)")
-#ggsave('../figures/lipidomics_liver_bubble_plot.pdf', height = 5.5, width = 18)
+bubdata = makeBubbleData(liverData)
+bubp = getBubbleSignificance(bubdata)
+makeBubblePlot(bubp, abundance=FALSE, colors=colors, bubble_range=c(3,10))
+ggsave('../figures/lipidomics_liver_bubble_plot.pdf', height = 5.5, width = 15)
+write.csv(bubp, '../processed_data/misc/lipidomics_liver_bubble_stats.csv')
 ```
 
 ```{r}
@@ -147,7 +74,7 @@ TG48_data %>%
   scale_y_discrete(limits = rev(factor(order))) + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank())
-ggsave('../figures/lipidomics_liver_TG48_normliverweight_heatmap.pdf', height = 14, width = 9)
+#ggsave('../figures/lipidomics_liver_TG48_normliverweight_heatmap.pdf', height = 14, width = 9)
 ```
 
 Plasma lipidomics 
@@ -169,32 +96,15 @@ autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = 
 #ggsave('../figures/lipidomics_plasma_pca.pdf', height = 3.5, width = 5)
 ```
 ```{r}
-# Generate dataframe for plasma lipidomics bubble plot
-pval_table = generate_bubble_data(plasmaData)
-pval_table = pval_table %>% mutate(significant = ifelse(pval < 0.05, "yes", "no"))
-```
-
-```{r}
-# Plasma lipidomics bubble plot of diet vs. fold-change. Fold-change is calculated using the median lipid abundance for each diet. Size of bubble highlights signficance (from Dunnett's test that does post hoc pairwise multiple comparisons procedure)
+# make bubble plot
 colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0", "#9F044D", 
             "#077E97", "#606060", "#fcfc81")
 
-pval_table %>%
-  mutate(log2FC = log2(FC)) %>%
-  mutate(log10P = -log10(pval)) %>%
-  mutate(log10Abundance = log10(Median)) %>%
-  arrange(desc(log10Abundance)) %>%
-  mutate(Significant = ifelse(pval < 0.05, "yes", "no")) %>%
-  ggplot(aes(x=log2FC, y=log10Abundance, size=log10P, fill=RefinedClass)) +
-    geom_vline(xintercept = 0, linetype = 'solid', color = 'black') +
-    geom_hline(yintercept = c(0, 2, 4), linetype = 'dotted', color = 'grey70', size = 1) +
-    geom_point(alpha=0.9, aes(fill = RefinedClass), color = 'black', pch = 21, stroke = 1) +
-    scale_size(range = c(5, 20), name="Significance -log10(P)", breaks=c(1,5,10,15)) +
-    xlim(-2, 2) +
-    scale_fill_manual(values = colors) +
-    facet_grid(~Comparison, scales = 'fixed') +
-    labs(x = "log2(Fold-change)", y = "log10(Abundance)")
-#ggsave('../figures/lipidomics_plasma_bubble_plot.pdf', height = 5.5, width = 18)
+bubdata = makeBubbleData(plasmaData) %>% filter(!Feat %in% c("PE", "PE_O", "PE_P"))
+bubp = getBubbleSignificance(bubdata)
+makeBubblePlot(bubp, abundance=FALSE, colors=colors, bubble_range=c(3,10))
+ggsave('../figures/lipidomics_plasma_bubble_plot.pdf', height = 5, width = 15)
+write.csv(bubp, '../processed_data/misc/lipidomics_plasma_bubble_stats.csv')
 ```
 
 ```{r}
@@ -780,5 +690,118 @@ test = complete_liverData[,c(1:10)]
 
 
 
+```{r}
+# Generate data frame for bubble plot
+generate_bubble_data <- function(data) {
+  totalLipidByClass = data %>%
+  gather(Feature, Value, 3:ncol(.)) %>%
+  separate(col = 'Feature', into = c("Class"), sep = "\\.", remove = FALSE, extra = 'drop') %>%
+  mutate(RefinedClass = ifelse(grepl("PE[.]O", Feature), "PE_O",
+                        ifelse(grepl("PE[.]P", Feature), "PE_P", Class))) %>%
+  select(-Class) %>%
+  group_by(ID, RefinedClass) %>%
+  drop_na() %>%
+  mutate(totalLipid = sum(Value)) %>%
+  ungroup() %>%
+  select(ID, Treatment, RefinedClass, totalLipid) %>%
+  distinct() %>%
+  group_by(RefinedClass) %>%
+  mutate(n_groups = length(unique(Treatment))) %>%
+  filter(n_groups == 5) %>%
+  ungroup() %>%
+  select(-n_groups)
+
+  # Use Dunnett's test to get significance of each lipid class at WD2,4,6,8 relative to control
+  totalLipidByClass$Treatment <- as.factor(totalLipidByClass$Treatment)
+  lipidClasses = levels(factor(totalLipidByClass$RefinedClass))
+  pval_table = data.frame("Comparison" = character(), "pval" = double(), "Median" = double(), 
+                          "FC" = double(), "RefinedClass" = character(), stringsAsFactors = FALSE)
+
+  for(i in lipidClasses) {
+    result = DunnettTest(totalLipid ~ Treatment, 
+                       data = filter(totalLipidByClass, RefinedClass == i), 
+                       control = 'Chow8')
+    FC = totalLipidByClass %>% 
+      filter(RefinedClass == i) %>% 
+      group_by(Treatment) %>% 
+      mutate(Median = median(totalLipid)) %>% 
+      ungroup() %>%
+      select(Treatment, RefinedClass, Median) %>% 
+      distinct() %>% 
+      mutate(FC = Median / filter(., Treatment == 'Chow8')$Median) %>%
+      filter(Treatment != 'Chow8') %>% 
+      mutate(Comparison = paste(Treatment, "-", "Chow8", sep = "")) %>% 
+      select(Comparison, Median, FC, RefinedClass)
+  
+    # combine the significance and fold-change into single entry
+    entry = as.data.frame(result$Chow8) %>% 
+      select(pval) %>% 
+      tibble::rownames_to_column(var = "Comparison") %>% 
+      left_join(., FC, by = "Comparison")
+
+    pval_table = rbind(pval_table, entry)
+  }
+  return(pval_table)
+}
+```
+
+```{r}
+# Generate dataframe for liver lipidomics bubble plot
+pval_table = generate_bubble_data(liverData)
+pval_table = pval_table %>% mutate(significant = ifelse(pval < 0.05, "yes", "no"))
+```
+
+```{r}
+# Liver lipidomics bubble plot of diet vs. fold-change. Fold-change is calculated using the median lipid abundance for each diet. Size of bubble highlights signficance (from Dunnett's test that does post hoc pairwise multiple comparisons procedure)
+colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0", "#9F044D", 
+            "#077E97", "#C5944E", "#034E61", "#FFA040", "#606060", "#fcfc81")
+
+pval_table %>%
+  mutate(log2FC = log2(FC)) %>%
+  mutate(log10P = -log10(pval)) %>%
+  mutate(log10Abundance = log10(Median)) %>%
+  arrange(desc(log10Abundance)) %>%
+  mutate(Significant = ifelse(pval < 0.05, "yes", "no")) %>%
+  ggplot(aes(x=log2FC, y=log10Abundance, size=log10P, fill=RefinedClass)) +
+    geom_vline(xintercept = 0, linetype = 'solid', color = 'black') +
+    geom_hline(yintercept = c(0, 2, 4, 6), linetype = 'dotted', color = 'grey70', size = 1) +
+    geom_point(alpha=0.9, aes(fill = RefinedClass), color = 'black', pch = 21, stroke = 1) +
+    scale_size(range = c(5, 20), name="Significance -log10(P)", breaks=c(0.01,0.1,1,5,9)) +
+    ylim(0, 7) +
+    xlim(-0.5, 5.5) +
+    scale_fill_manual(values = colors) +
+    facet_grid(~Comparison, scales = 'fixed') +
+    labs(x = "log2(Fold-change)", y = "log10(Abundance)")
+#ggsave('../figures/lipidomics_liver_bubble_plot.pdf', height = 5.5, width = 18)
+```
+
+```{r}
+# Generate dataframe for plasma lipidomics bubble plot
+pval_table = generate_bubble_data(plasmaData)
+pval_table = pval_table %>% mutate(significant = ifelse(pval < 0.05, "yes", "no"))
+```
+
+```{r}
+# Plasma lipidomics bubble plot of diet vs. fold-change. Fold-change is calculated using the median lipid abundance for each diet. Size of bubble highlights signficance (from Dunnett's test that does post hoc pairwise multiple comparisons procedure)
+colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0", "#9F044D", 
+            "#077E97", "#606060", "#fcfc81")
+
+pval_table %>%
+  mutate(log2FC = log2(FC)) %>%
+  mutate(log10P = -log10(pval)) %>%
+  mutate(log10Abundance = log10(Median)) %>%
+  arrange(desc(log10Abundance)) %>%
+  mutate(Significant = ifelse(pval < 0.05, "yes", "no")) %>%
+  ggplot(aes(x=log2FC, y=log10Abundance, size=log10P, fill=RefinedClass)) +
+    geom_vline(xintercept = 0, linetype = 'solid', color = 'black') +
+    geom_hline(yintercept = c(0, 2, 4), linetype = 'dotted', color = 'grey70', size = 1) +
+    geom_point(alpha=0.9, aes(fill = RefinedClass), color = 'black', pch = 21, stroke = 1) +
+    scale_size(range = c(5, 20), name="Significance -log10(P)", breaks=c(1,5,10,15)) +
+    xlim(-2, 2) +
+    scale_fill_manual(values = colors) +
+    facet_grid(~Comparison, scales = 'fixed') +
+    labs(x = "log2(Fold-change)", y = "log10(Abundance)")
+#ggsave('../figures/lipidomics_plasma_bubble_plot.pdf', height = 5.5, width = 18)
+```
 
 
