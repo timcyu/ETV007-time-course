@@ -107,8 +107,7 @@ makeBubblePlot <- function(
   bubble_breaks=list(),
   ylim=list(),
   xlim=list(),
-  abundance=TRUE,
-  order_by=FALSE
+  abundance=TRUE
   ) {
   '
   makes a bubble plot.
@@ -122,7 +121,6 @@ makeBubblePlot <- function(
     ylim : list with two floats. ex. c(0,7)
     xlim : list with two floats. ex. c(-0.5,5.5)
     abundance : boolean. y-axis is abundance or categorical
-    order_by : column to order by, default is NULL. 
   '
   if(length(colors) == 0) {
     colors = brewer.pal(12, "Set3")
