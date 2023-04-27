@@ -40,8 +40,8 @@ autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = T
 ```
 ```{r}
 # make bubble plot
-colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0", "#9F044D", 
-            "#077E97", "#C5944E", "#034E61", "#FFA040", "#606060", "#fcfc81")
+colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0",
+            "#9F044D", "#077E97", "#C5944E", "#034E61", "#FFA040", "#606060", "#fcfc81")
 
 bubdata = makeBubbleData(liverData)
 bubp = getBubbleSignificance(bubdata)
@@ -97,8 +97,8 @@ autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = 
 ```
 ```{r}
 # make bubble plot
-colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0", "#9F044D", 
-            "#077E97", "#606060", "#fcfc81")
+colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0",
+            "#9F044D", "#077E97", "#606060", "#fcfc81")
 
 bubdata = makeBubbleData(plasmaData) %>% filter(!Feat %in% c("PE", "PE_O", "PE_P"))
 bubp = getBubbleSignificance(bubdata)

@@ -195,7 +195,7 @@ c <- summary_df %>%
   theme(legend.position="none")
 
 plot_grid(a,b,c, ncol = 3)
-ggsave('../figures/rnaseq_pairwise_de_genes_heatmap_fccutoff.pdf', height = 3.7, width = 10)
+#ggsave('../figures/rnaseq_pairwise_de_genes_heatmap_fccutoff.pdf', height = 3.7, width = 10)
 rm(a,b,c)
 ```
 
@@ -210,6 +210,11 @@ print(nrow(filter(class_df, biphasic_class == 'uniq_02')))
 print(nrow(filter(class_df, biphasic_class == 'uniq_28')))
 print(nrow(filter(class_df, biphasic_class == 'both'))) 
 print(nrow(filter(class_df, biphasic_class == 'none'))) 
+
+#[1] 659
+#[1] 494
+#[1] 85
+#[1] 21494
 ```
 Save lists of DE genes that fall into each category for downstream KEGG pathway enrichment analysis.
 ```{r}
@@ -364,10 +369,10 @@ only_02 = class_df %>% filter(DE_02 == "yes",
                               DE_24 == "no", DE_26 == "no", DE_28 == "no",
                               DE_46 == "no", DE_48 == "no", DE_68 == "no")
 # up? 472
-nrow(only_02 %>% filter(Direct_02 == "up"))
+up_only_02 = only_02 %>% filter(Direct_02 == "up")
   
 # down? 171
-nrow(only_02 %>% filter(Direct_02 == "down"))
+down_only_02 = only_02 %>% filter(Direct_02 == "down")
 
 # how many genes are DE between 2-4, not any comparison before or after that? 4 (2 up, 2 down)
 only_24 = class_df %>% filter(DE_24 == "yes", 
@@ -383,6 +388,35 @@ only_46 = class_df %>% filter(DE_46 == "yes",
 only_28 = class_df %>% filter(DE_28 == "yes", 
                               DE_02 == "no",
                               Direct_24 == "up", Direct_46 == "up", Direct_68 == "up")
+
+# how many genes are monotonically increasing in expression? (i.e., up-reguulated DE between 0-2, 2-4, 4-6, 6-8)
+monotonic_up = class_df %>% filter(DE_02 == "yes", Direct_02 == "up",
+                                   DE_28 == "yes", Direct_28 == "up"
+                                   )
+```
+
+```{r}
+at_least_one_sig_df = class_df %>% filter(
+   DE_02 == "yes" | DE_04 == "yes" | DE_06 == "yes" | DE_08 == "yes" |
+   DE_24 == "yes" | DE_26 == "yes" | DE_28 == "yes" |
+   DE_46 == "yes" | DE_48 == "yes" |
+   DE_68 == "yes"
+) %>% dplyr::select(Associated.Gene.Name, 
+                    DE_02, log2FC_02, Direct_02,
+                    DE_24, log2FC_24, Direct_24,
+                    DE_46, log2FC_46, Direct_46,
+                    DE_68, log2FC_68, Direct_68,
+                    DE_28, log2FC_28, Direct_28)
+
+
+test = at_least_one_sig_df %>% filter(
+  DE_02 == "yes",
+  DE_28 == "yes"
+)
+```
+
+```{r}
+list = read.table('../processed_data/degenes/down_02.txt')
 
 ```
 
@@ -415,12 +449,13 @@ write.csv(all_genes, '../processed_data/datasets/RNAseq_FPKM.csv', row.names = F
 ```
 
 ```{r}
+# START HERE FOR DOWNSTREAM ANALYSES
 all_genes = read.csv('../processed_data/datasets/RNAseq_FPKM.csv', header = TRUE, check.names = FALSE)
 ```
 
 ```{r}
 all_genes %>% 
-  dplyr::select(Treatment, Hmgcr, Cidea, Enho, Hal, Cd36) %>%
+  dplyr::select(Treatment, Hmgcr, Cidea, Enho, Hal, Cd36, Cfd, Col1a1) %>%
   gather(Feature, Value, -Treatment) %>%
   ggplot(aes(y = log10(Value+1), x = Treatment)) + 
   geom_boxplot(outlier.shape = NA, aes(fill = Treatment), alpha = 0.6) + 
