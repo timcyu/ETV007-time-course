@@ -120,72 +120,27 @@ top50gene_x_liver_lipid_mat = top50gene_x_liver_lipid %>% dplyr::select(-adj_pva
   pivot_wider(names_from=Liver_lipid, values_from=bicor) %>%
   tibble::column_to_rownames(var="Gene") %>% as.matrix()
 
-if(FALSE) {
-  cluster_species_by_class <- function(mat, classes) {
-  result = data.frame("lipid"=NULL, "lipid_class"=NULL, stringsAsFactors = FALSE)
-  df = data.frame(t(mat), "lipid" = row.names(t(mat))) %>% separate(
-      col="lipid", 
-      into=c("class"), 
-      sep="\\.", 
-      remove=FALSE, 
-      extra="drop"
-    ) %>% mutate(
-      lipid_class = ifelse(
-        grepl("PE[.]O", lipid), "PE_O", ifelse(
-          grepl("PE[.]P", lipid), "PE_P", class
-        )
-      )
-    ) %>% dplyr::select(-class)
-  
-  for(class in classes) {
-    class_df = df %>% filter(lipid_class == class) %>% dplyr::select(-c(lipid, lipid_class))
-    order = hclust(
-      dist(
-        class_df, 
-        method = "euclidean"
-        ), 
-      method = "median"
-      )$order
-
-    ordered_lipid_class = df %>% filter(lipid_class == class) %>% 
-      arrange(factor(lipid, levels = lipid[order])) %>% 
-      dplyr::select(lipid, lipid_class)
-    
-    result = rbind(result, ordered_lipid_class)
-  }
-  return(result)
-}
-
-classes = c('TG', 'DG', 'CE', 'Cer', 'FA', 'HexCER', 'LacCER', 
-            'LPC', 'LPE', 'PE', 'PE_O', 'PE_P', 'PC', 'SM')
-
-ordered_lipidlist = cluster_species_by_class(
-  top50gene_x_liver_lipid_mat, 
-  classes
-)
-}
-
 # plot heat map
 colors <- rev(colorRampPalette(brewer.pal(9, "RdBu"))(100))
 
-lipidclass_list = data.frame(
-    "lipid" = colnames(top50gene_x_liver_lipid_mat)
+lipidclasses = (data.frame(
+  "lipid" = colnames(top50gene_x_liver_lipid_mat)
   ) %>% separate(
-      col="lipid", 
-      into=c("class"), 
-      sep="\\.", 
-      remove=FALSE, 
-      extra="drop"
-    ) %>% mutate(
-      lipid_class = ifelse(
-        grepl("PE[.]O", lipid), "PE_O", ifelse(
-          grepl("PE[.]P", lipid), "PE_P", class
-        )
+    col="lipid", 
+    into=c("class"), 
+    sep="\\.", 
+    remove=FALSE, 
+    extra="drop"
+  ) %>% mutate(
+    lipid_class = ifelse(
+      grepl("PE[.]O", lipid), "PE_O", ifelse(
+        grepl("PE[.]P", lipid), "PE_P", class
       )
-    ) %>% dplyr::select(-class)
+    )
+  ))$lipid_class
 
 column_ha = HeatmapAnnotation(
-  lipid_class = lipidclass_list$lipid_class,
+  lipid_class = lipidclasses,
   col = list(lipid_class=c(
     "CE"="#A00000", "Cer"="#00C000", "DG"="#5757F9", 
     "FA"="#FF6000", "HexCER"="#0000C0", "LacCER"="#C0C000", 
@@ -196,9 +151,8 @@ column_ha = HeatmapAnnotation(
   ),
   border = TRUE
 )
-
 set.seed(123)
-Heatmap(
+ht = Heatmap(
   top50gene_x_liver_lipid_mat, 
   top_annotation=column_ha,
   cluster_rows=TRUE,
@@ -207,61 +161,28 @@ Heatmap(
   show_column_dend=FALSE,
   show_column_names=FALSE,
   col=colors,
-  column_split=ordered_lipidlist$lipid_class,
+  column_split=lipidclasses,
   border=TRUE
 )
+ht = draw(ht)
 
-pdf('../figures/top50gene_x_liver_lipid_heatmap.pdf', width=10, height=6)
-hm = draw(hm)
-dev.off()
+#pdf('../figures/top50gene_x_liver_lipid_heatmap.pdf', width=10, height=6)
+#dev.off()
 ```
 
 ```{r}
 # only plot the DG's
-DG_ordered_lipidlist = ordered_lipidlist %>% filter(lipid_class == 'DG')
-
-dg_hm = Heatmap(
-  top50gene_x_liver_lipid_mat[,DG_ordered_lipidlist$lipid], 
-  row_labels=rownames(hm@ht_list$matrix_41@matrix)[row_order(hm)],
-  cluster_columns=FALSE,
+DG_ht = Heatmap(
+  top50gene_x_liver_lipid_mat[,which(lipidclasses == 'DG')], 
+  row_order=rownames(top50gene_x_liver_lipid_mat)[row_order(ht)],
+  cluster_columns=TRUE,
+  cluster_rows=FALSE,
   show_row_dend=FALSE,
+  show_column_dend=FALSE, 
   show_column_names=TRUE,
-  col=colors,
   border=TRUE,
+  col=colors,
   column_title ='DG'
 )
-draw(dg_hm)
-```
-
-```{r}
-# only plot the Cer's
-Cer_ordered_lipidlist = ordered_lipidlist %>% filter(lipid_class == 'Cer')
-
-hm = Heatmap(
-  top50gene_x_liver_lipid_mat[,Cer_ordered_lipidlist$lipid], 
-  cluster_columns=FALSE,
-  show_row_dend=FALSE,
-  show_column_names=TRUE,
-  col=colors,
-  border=TRUE,
-  column_title ='Cer'
-)
-draw(hm)
-
-```
-```{r}
-# only plot the FAs
-FA_ordered_lipidlist = ordered_lipidlist %>% filter(lipid_class == 'FA')
-
-hm = Heatmap(
-  top50gene_x_liver_lipid_mat[,FA_ordered_lipidlist$lipid], 
-  cluster_columns=FALSE,
-  show_row_dend=FALSE,
-  show_column_names=TRUE,
-  col=colors,
-  border=TRUE,
-  column_title ='FA'
-)
-pdf
-draw(hm)
+DG_ht
 ```
