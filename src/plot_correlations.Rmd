@@ -4,7 +4,7 @@ date: "2/2/2022"
 output: html_document
 ---
 
-```{r}
+```{r, include = FALSE}
 library(tidyverse)
 library(viridis)
 library(RColorBrewer)
@@ -13,176 +13,92 @@ theme_set(theme_cowplot())
 ```
 
 ```{r}
-microbiome_species_mapping = read.csv('../raw_data/Mappings/Microbiome_tax_class_rarefied.csv', header = TRUE)
+microbiome_species_mapping = read.csv('../raw_data/Mappings/Microbiome_tax_class_rarefied.csv',
+                                      header = TRUE)
 ```
 
 ```{r}
 # read in the data
-species_to_plot = (read.csv('../processed_data/correlations/biliary_ba_x_microbiome.csv', header = TRUE) %>% 
-  left_join(., microbiome_species_mapping, by = c("Microbiome_otu"="OTU")) %>%
-  filter(adj_pval < 0.01) %>% select(Microbiome_otu) %>% distinct())$Microbiome_otu
+species_to_plot = (
+  read.csv(
+    '../processed_data/correlations/biliary_ba_x_microbiome.csv',
+    header = TRUE
+  ) %>% left_join(.,
+                  microbiome_species_mapping,
+                  by = c("Microbiome_otu" = "OTU")) %>% filter(adj_pval < 0.01) %>% select(Microbiome_otu) %>%
+    distinct()
+)$Microbiome_otu
 
-read.csv('../processed_data/correlations/biliary_ba_x_microbiome.csv', header = TRUE) %>% 
-  left_join(., microbiome_species_mapping, by = c("Microbiome_otu"="OTU")) %>%
-  filter(Microbiome_otu %in% species_to_plot) %>%
-  ggplot(aes(x = Microbiome_otu, y = Biliary_ba)) + geom_tile(aes(fill = bicor)) +
-  scale_fill_distiller(palette='RdYlBu') +
+read.csv('../processed_data/correlations/biliary_ba_x_microbiome.csv',
+         header = TRUE) %>%
+  left_join(.,
+            microbiome_species_mapping,
+            by = c("Microbiome_otu" = "OTU")) %>% filter(Microbiome_otu %in% species_to_plot) %>%
+  ggplot(aes(x = Microbiome_otu, y = Biliary_ba)) +
+  geom_tile(aes(fill = bicor)) +
+  scale_fill_distiller(palette = 'RdYlBu') +
   theme(axis.ticks.x = element_blank(),
-        axis.text.x = element_blank()) +
-  facet_wrap(~Rank2)
-ggsave('~/Desktop/biliary_ba_x_microbiome_p1e-2.pdf', height = 6, width = 10)
+        axis.text.x = element_blank()) + facet_wrap( ~ Rank2)
+ggsave(
+  '~/Desktop/biliary_ba_x_microbiome_p1e-2.pdf',
+  height = 6,
+  width = 10
+)
 ```
 
 ```{r}
 # read in the data
-species_to_plot = (read.csv('../processed_data/correlations/liver_ba_x_microbiome.csv', header = TRUE) %>% 
-  left_join(., microbiome_species_mapping, by = c("Microbiome_otu"="OTU")) %>%
-  filter(adj_pval < 0.01) %>% select(Microbiome_otu) %>% distinct())$Microbiome_otu
+species_to_plot = (
+  read.csv(
+    '../processed_data/correlations/liver_ba_x_microbiome.csv', header = TRUE
+  ) %>% left_join(
+    ., 
+    microbiome_species_mapping, 
+    by=c("Microbiome_otu"="OTU")
+  ) %>% filter(
+    adj_pval < 0.01
+  ) %>% select(Microbiome_otu) %>% 
+  distinct())$Microbiome_otu
 
-read.csv('../processed_data/correlations/liver_ba_x_microbiome.csv', header = TRUE) %>% 
-  left_join(., microbiome_species_mapping, by = c("Microbiome_otu"="OTU")) %>%
-  filter(Microbiome_otu %in% species_to_plot) %>%
-  ggplot(aes(x = Microbiome_otu, y = Liver_ba)) + geom_tile(aes(fill = bicor)) +
+read.csv(
+  '../processed_data/correlations/liver_ba_x_microbiome.csv', header = TRUE
+  ) %>% left_join(
+    ., 
+    microbiome_species_mapping, 
+    by=c("Microbiome_otu"="OTU")
+  ) %>% filter(
+    Microbiome_otu %in% species_to_plot
+  ) %>%
+  ggplot(aes(x = Microbiome_otu, y = Liver_ba)) + 
+  geom_tile(aes(fill = bicor)) +
   scale_fill_distiller(palette='RdYlBu') +
-  theme(axis.ticks.x = element_blank(),
-        axis.text.x = element_blank()) +
-  facet_wrap(~Rank2)
+  theme(
+    axis.ticks.x = element_blank(),
+    axis.text.x = element_blank()
+  ) + facet_wrap(~Rank2)
 ggsave('~/Desktop/liver_ba_x_microbiome_p1e-2.pdf', height = 6, width = 10)
 ```
 
 ```{r}
 # read in the data
-species_to_plot = (read.csv('../processed_data/correlations/intestinal_ba_x_microbiome.csv', header = TRUE) %>% 
-  left_join(., microbiome_species_mapping, by = c("Microbiome_otu"="OTU")) %>%
-  filter(adj_pval < 0.01) %>% select(Microbiome_otu) %>% distinct())$Microbiome_otu
+species_to_plot = (
+  read.csv(
+    '../processed_data/correlations/intestinal_ba_x_microbiome.csv',
+    header = TRUE
+  ) %>% left_join(.,
+                  microbiome_species_mapping,
+                  by = c("Microbiome_otu" = "OTU")) %>% filter(adj_pval < 0.01) %>% select(Microbiome_otu) %>%
+    distinct()
+)$Microbiome_otu
 
-read.csv('../processed_data/correlations/intestinal_ba_x_microbiome.csv', header = TRUE) %>% 
-  left_join(., microbiome_species_mapping, by = c("Microbiome_otu"="OTU")) %>%
+read.csv('../processed_data/correlations/intestinal_ba_x_microbiome.csv',
+         header = TRUE) %>%
+  left_join(., microbiome_species_mapping, by = c("Microbiome_otu" = "OTU")) %>%
   filter(Microbiome_otu %in% species_to_plot) %>%
   ggplot(aes(x = Microbiome_otu, y = Intestinal_ba)) + geom_tile(aes(fill = bicor)) +
-  scale_fill_distiller(palette='RdYlBu') +
+  scale_fill_distiller(palette = 'RdYlBu') +
   theme(axis.ticks.x = element_blank(),
         axis.text.x = element_blank()) +
-  facet_wrap(~Rank2)
+  facet_wrap( ~ Rank2)
 ggsave('~/Desktop/intestinal_ba_x_microbiome_p1e-2.pdf', height = 6, width = 10)
-```
-
-```{r}
-# heat map of the top 50 genes present in the most significant gene-lipid correlation pairs. Examining correlations for top 50 genes across all lipid species (top 50 TAG)
-suppressPackageStartupMessages(library(ComplexHeatmap))
-
-# obtain top 50 most abundant TG species
-TAG = read.csv(
-  '../processed_data/datasets/Lipidomics_liver.csv', 
-  header = TRUE, 
-  stringsAsFactors = FALSE, 
-  check.names = FALSE
-  ) %>% gather(
-    lipid,
-    value,
-    3:ncol(.)
-  ) %>% filter(
-    grepl("TG", lipid)
-  ) %>% group_by(
-    lipid
-  ) %>% mutate(
-    med = median(value)
-  ) %>% ungroup() %>% dplyr::select(
-    lipid, med
-  ) %>% distinct() %>% top_n(50, wt=med)
-
-# extract remaining species that are not TAG
-other_species = read.csv(
-  '../processed_data/datasets/Lipidomics_liver.csv', 
-  header = TRUE, 
-  stringsAsFactors = FALSE, 
-  check.names = FALSE
-  ) %>% gather(
-    lipid,
-    value,
-    3:ncol(.)
-  ) %>% filter(
-    !grepl("TG", lipid)
-  ) %>% dplyr::select(lipid) %>% distinct()
-
-# list of lipids to (potentially) include in the heatmap
-lipid_list = append(TAG$lipid, other_species$lipid)
-
-# remove any correlations that don't contain lipids in `lipid_list`
-top50gene_x_liver_lipid = read.csv(
-  '../processed_data/correlations/top50gene_x_liver_lipid.csv'
-) %>% filter(
-  Liver_lipid %in% lipid_list
-) %>% drop_na()
-
-# create gene x liver lipid matrix to plot
-top50gene_x_liver_lipid_mat = top50gene_x_liver_lipid %>% dplyr::select(-adj_pval) %>%
-  pivot_wider(names_from=Liver_lipid, values_from=bicor) %>%
-  tibble::column_to_rownames(var="Gene") %>% as.matrix()
-
-# plot heat map
-colors <- rev(colorRampPalette(brewer.pal(9, "RdBu"))(100))
-
-lipidclasses = (data.frame(
-  "lipid" = colnames(top50gene_x_liver_lipid_mat)
-  ) %>% separate(
-    col="lipid", 
-    into=c("class"), 
-    sep="\\.", 
-    remove=FALSE, 
-    extra="drop"
-  ) %>% mutate(
-    lipid_class = ifelse(
-      grepl("PE[.]O", lipid), "PE_O", ifelse(
-        grepl("PE[.]P", lipid), "PE_P", class
-      )
-    )
-  ))$lipid_class
-
-column_ha = HeatmapAnnotation(
-  lipid_class = lipidclasses,
-  col = list(lipid_class=c(
-    "CE"="#A00000", "Cer"="#00C000", "DG"="#5757F9", 
-    "FA"="#FF6000", "HexCER"="#0000C0", "LacCER"="#C0C000", 
-    "LPC"="#D7B0B0", "LPE"="#9F044D", "PC"="#077E97", 
-    "PE"="#C5944E", "PE_O"="#034E61", "PE_P"="#FFA040", 
-    "SM"="#606060", "TG"="#fcfc81"
-    )
-  ),
-  border = TRUE
-)
-set.seed(123)
-ht = Heatmap(
-  top50gene_x_liver_lipid_mat, 
-  top_annotation=column_ha,
-  cluster_rows=TRUE,
-  cluster_columns=TRUE,
-  show_row_dend=FALSE,
-  show_column_dend=FALSE,
-  show_column_names=FALSE,
-  col=colors,
-  column_split=lipidclasses,
-  border=TRUE
-)
-ht = draw(ht)
-
-#pdf('../figures/top50gene_x_liver_lipid_heatmap.pdf', width=10, height=6)
-#dev.off()
-```
-
-```{r}
-# only plot the DG's
-DG_ht = Heatmap(
-  top50gene_x_liver_lipid_mat[,which(lipidclasses == 'DG')], 
-  row_order=rownames(top50gene_x_liver_lipid_mat)[row_order(ht)],
-  cluster_columns=TRUE,
-  cluster_rows=FALSE,
-  show_row_dend=FALSE,
-  show_column_dend=FALSE, 
-  show_column_names=TRUE,
-  border=TRUE,
-  col=colors,
-  column_title ='DG'
-)
-DG_ht
 ```
