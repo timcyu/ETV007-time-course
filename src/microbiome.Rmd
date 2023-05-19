@@ -21,7 +21,7 @@ data = read.csv('../processed_data/datasets/Microbiome_otu_rarefied.csv', header
 ```{r}
 # PCA
 autoplot(prcomp(data[-c(1,2)], scale. = TRUE), data = data, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
-#ggsave('../figures/microbiome_rarefied_pca.pdf', height = 3.5, width = 5)
+ggsave('../figures/microbiome_rarefied_pca.pdf', height = 3.5, width = 5)
 ```
 ```{r}
 # load in taxonomic information
@@ -36,9 +36,9 @@ total_otus = rowSums(data[-c(1,2)])
 # because rarefied, all have 73989 reads
 
 data %>%
-  select(ID, Treatment, (tax_info %>% filter(Rank5 == 'f__Verrucomicrobiaceae'))$OTU) %>%
-  mutate(percentVerruco = ((select(., -c(ID, Treatment)) %>% rowSums) / 73989) * 100) %>%
-  select(ID, Treatment, percentVerruco) %>%
+  dplyr::select(ID, Treatment, (tax_info %>% filter(Rank5 == 'f__Verrucomicrobiaceae'))$OTU) %>%
+  mutate(percentVerruco = ((dplyr::select(., -c(ID, Treatment)) %>% rowSums) / 73989) * 100) %>%
+  dplyr::select(ID, Treatment, percentVerruco) %>%
   ggplot(aes(x = Treatment, y = percentVerruco)) + geom_boxplot(outlier.shape=NA) +
   geom_jitter(aes(color = Treatment), size = 3) +
   scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41')) +
@@ -81,7 +81,7 @@ createCorrTable <- function(corr_object, data1_name, data2_name) {
 ```{r}
 # correlation between firmicutes and total BA species
 firmicutes = data %>% 
-  select(ID, Treatment, (tax_info %>% filter(Rank2 == 'p__Firmicutes'))$OTU)
+  dplyr::select(ID, Treatment, (tax_info %>% filter(Rank2 == 'p__Firmicutes'))$OTU)
 
 # only correlate if ID's are in both data sets
 common_ids = intersect(firmicutes$ID, BA_totalpool$ID)
@@ -105,13 +105,13 @@ sig_firmicutes = (firmicutes_x_BA_totalpool %>% filter(adj_pval < 0.05))$firmicu
 # selected data
 selected_df = firmicutes_x_BA_totalpool %>%
   filter(firmicutes %in% sig_firmicutes) %>%
-  select(-adj_pval) %>%
+  dplyr::select(-adj_pval) %>%
   spread(firmicutes, bicor, fill=0) %>%
   tibble::column_to_rownames(var="totalpool_ba")
 
 # hierarchical clustering for order
-ba_ord = hclust( dist(selected_df, method = "euclidean"), method = "ward.D" )$order
-firmicutes_ord = hclust( dist(t(selected_df), method = "euclidean"), method = "ward.D" )$order
+ba_ord = hclust(dist(selected_df, method = "euclidean"), method = "ward.D")$order
+firmicutes_ord = hclust(dist(t(selected_df), method = "euclidean"), method = "ward.D")$order
 
 # plot
 firmicutes_x_BA_totalpool %>%
@@ -123,13 +123,13 @@ firmicutes_x_BA_totalpool %>%
   theme(axis.ticks.x = element_blank(),
         axis.text.x = element_blank()) +
   labs(x="Firmicutes species", y="Bile Acids (Total Pool)")
-ggsave('../figures/firmicutes_x_ba_totalpool.pdf', height = 4, width = 6)
+ggsave('../figures/microbiome_firmicutes_x_ba_totalpool.pdf', height = 4, width = 6)
 ```
 
 ```{r}
 # correlation between Bacteroidetes and total BA species
 bacteroidetes = data %>% 
-  select(ID, Treatment, (tax_info %>% filter(Rank2 == 'p__Bacteroidetes'))$OTU)
+  dplyr::select(ID, Treatment, (tax_info %>% filter(Rank2 == 'p__Bacteroidetes'))$OTU)
 
 # only correlate if ID's are in both data sets
 common_ids = intersect(bacteroidetes$ID, BA_totalpool$ID)
@@ -153,13 +153,13 @@ sig_bacteroidetes = (bacteroidetes_x_BA_totalpool %>% filter(adj_pval < 0.05))$b
 # selected data
 selected_df = bacteroidetes_x_BA_totalpool %>%
   filter(bacteroidetes %in% sig_bacteroidetes) %>%
-  select(-adj_pval) %>%
+  dplyr::select(-adj_pval) %>%
   spread(bacteroidetes, bicor, fill=0) %>%
   tibble::column_to_rownames(var="totalpool_ba")
 
 # hierarchical clustering for order
-ba_ord = hclust( dist(selected_df, method = "euclidean"), method = "ward.D" )$order
-bacteroidetes_ord = hclust( dist(t(selected_df), method = "euclidean"), method = "ward.D" )$order
+ba_ord = hclust(dist(selected_df, method = "euclidean"), method = "ward.D")$order
+bacteroidetes_ord = hclust(dist(t(selected_df), method = "euclidean"), method = "ward.D")$order
 
 # plot
 bacteroidetes_x_BA_totalpool %>%
@@ -171,12 +171,12 @@ bacteroidetes_x_BA_totalpool %>%
   theme(axis.ticks.x = element_blank(),
         axis.text.x = element_blank()) +
   labs(x="Bacteroidetes species", y="Bile Acids (Total Pool)")
-ggsave('../figures/bacteroidetes_x_ba_totalpool.pdf', height = 4, width = 6)
+ggsave('../figures/microbiome_bacteroidetes_x_ba_totalpool.pdf', height = 4, width = 6)
 ```
 ```{r}
 # correlation between Verrucomicrobia and total BA species
 verruco = data %>% 
-  select(ID, Treatment, (tax_info %>% filter(Rank2 == 'p__Verrucomicrobia'))$OTU)
+  dplyr::select(ID, Treatment, (tax_info %>% filter(Rank2 == 'p__Verrucomicrobia'))$OTU)
 
 # only correlate if ID's are in both data sets
 common_ids = intersect(verruco$ID, BA_totalpool$ID)
@@ -201,13 +201,13 @@ sig_verruco = (verruco_x_BA_totalpool %>% filter(adj_pval < 0.05))$verruco %>% u
 # selected data
 selected_df = verruco_x_BA_totalpool %>%
   filter(verruco %in% sig_verruco) %>%
-  select(-adj_pval) %>%
+  dplyr::select(-adj_pval) %>%
   spread(verruco, bicor, fill=0) %>%
   tibble::column_to_rownames(var="totalpool_ba")
 
 # hierarchical clustering for order
-ba_ord = hclust( dist(selected_df, method = "euclidean"), method = "ward.D" )$order
-verruco_ord = hclust( dist(t(selected_df), method = "euclidean"), method = "ward.D" )$order
+ba_ord = hclust(dist(selected_df, method = "euclidean"), method = "ward.D")$order
+verruco_ord = hclust(dist(t(selected_df), method = "euclidean"), method = "ward.D")$order
 
 # plot
 verruco_x_BA_totalpool %>%
@@ -219,28 +219,8 @@ verruco_x_BA_totalpool %>%
   theme(axis.ticks.x = element_blank(),
         axis.text.x = element_blank()) +
   labs(x="Verrucomicrobia species", y="Bile Acids (Total Pool)")
-ggsave('../figures/verruco_x_ba_totalpool.pdf', height = 4, width = 6)
+ggsave('../figures/microbiome_verruco_x_ba_totalpool.pdf', height = 4, width = 6)
 ```
-
-Get number of significant correlations between each phyla and each BA (separated by tissue)
-```{r}
-biliary_BA_x_micro = read.csv('../processed_data/correlations/biliary_ba_x_microbiome.csv', 
-                              header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
-  left_join(., (tax_info %>% select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
-
-liver_BA_x_micro = read.csv('../processed_data/correlations/liver_ba_x_microbiome.csv', 
-                            header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
-  left_join(., (tax_info %>% select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
-
-intestinal_BA_x_micro = read.csv('../processed_data/correlations/intestinal_ba_x_microbiome.csv', 
-                                 header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
-  left_join(., (tax_info %>% select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
-
-total_BA_x_micro = read.csv('../processed_data/correlations/total_ba_x_microbiome.csv', 
-                            header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
-  left_join(., (tax_info %>% select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
-```
-
 ```{r}
 # positive correlation plot between single bacteriodetes species and T-b-MCA
 r = cor(
@@ -255,7 +235,7 @@ ggplot(data=NULL,
   geom_point(size=2) + 
   annotate("text", x=5000, y=20, size=5, label="italic(r) == 0.76", parse=TRUE) +
   labs(y='T-b-MCA (nmol)', x='bacteriodetes species 4457872 (rarefied counts)')
-ggsave('../figures/bacteroidete_species_x_TbMCA_pos.pdf', height = 4.3, width = 5)
+ggsave('../figures/microbiome_bacteroidete_species_x_TbMCA_pos.pdf', height = 4.3, width = 5)
 ```
 
 ```{r}
@@ -272,5 +252,23 @@ ggplot(data=NULL,
   geom_point(size=2) + 
   annotate("text", x=4000, y=20, size=5, label="italic(r) == -0.64", parse=TRUE) +
   labs(y='T-b-MCA (nmol)', x='bacteriodetes species 183446 (rarefied counts)')
-ggsave('../figures/bacteroidete_species_x_TbMCA_neg.pdf', height = 4.3, width = 5)
+ggsave('../figures/microbiome_bacteroidete_species_x_TbMCA_neg.pdf', height = 4.3, width = 5)
+```
+
+```{r}
+#biliary_BA_x_micro = read.csv('../processed_data/correlations/biliary_ba_x_microbiome.csv', 
+#                              header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
+#  left_join(., (tax_info %>% dplyr::select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
+
+#liver_BA_x_micro = read.csv('../processed_data/correlations/liver_ba_x_microbiome.csv', 
+#                            header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
+#  left_join(., (tax_info %>% dplyr::select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
+
+#intestinal_BA_x_micro = read.csv('../processed_data/correlations/intestinal_ba_x_microbiome.csv', 
+#                                 header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) #%>%
+#  left_join(., (tax_info %>% dplyr::select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
+
+#total_BA_x_micro = read.csv('../processed_data/correlations/total_ba_x_microbiome.csv', 
+#                            header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
+#  left_join(., (tax_info %>% dplyr::select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
 ```

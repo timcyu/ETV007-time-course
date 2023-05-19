@@ -63,7 +63,7 @@ levels(vsd$condition) = c("CHOW8", "WD2", "WD4", "WD6", "WD8")
 plotPCA(vsd) + 
   scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'), 
                      name = "Treatment")
-#ggsave('../figures/rnaseq_pca.pdf', height = 4.5, width = 5)
+ggsave('../figures/rnaseq_pca.pdf', height = 4.5, width = 5)
 ```
 Check normalized data.
 ```{r}
@@ -195,7 +195,7 @@ c <- summary_df %>%
   theme(legend.position="none")
 
 plot_grid(a,b,c, ncol = 3)
-#ggsave('../figures/rnaseq_pairwise_de_genes_heatmap_fccutoff.pdf', height = 3.7, width = 10)
+ggsave('../figures/rnaseq_pairwise_de_genes_heatmap_fccutoff.pdf', height = 3.7, width = 10)
 rm(a,b,c)
 ```
 
@@ -354,14 +354,12 @@ plot_kegg <- function(data, fname, height, width, color) {
   ggsave(plot=p, paste0('../figures/', fname, '.pdf'), height=height, width=width)
 }
 
-plot_kegg(kegg_02_up, 'kegg_02_up', height=4, width=8, color='blue')
-plot_kegg(kegg_02_down, 'kegg_02_down', height=4, width=8, color='red')
-plot_kegg(kegg_28_up, 'kegg_28_up', height=5, width=8, color='blue')
-plot_kegg(kegg_28_down, 'kegg_28_down', height=2, width=8, color='red')
-plot_kegg(kegg_02down_28up, 'kegg_02down_28up', height=3, width=8, color='#FFA500')
+plot_kegg(kegg_02_up, 'rnaseq_kegg_02_up', height=4, width=8, color='blue')
+plot_kegg(kegg_02_down, 'rnaseq_kegg_02_down', height=4, width=8, color='red')
+plot_kegg(kegg_28_up, 'rnaseq_kegg_28_up', height=5, width=8, color='blue')
+plot_kegg(kegg_28_down, 'rnaseq_kegg_28_down', height=2, width=8, color='red')
+plot_kegg(kegg_02down_28up, 'rnaseq_kegg_02down_28up', height=3, width=8, color='#FFA500')
 ```
-
-
 
 ```{r}
 # how many genes are DE between 0-2, not any comparison after 2 weeks? 643

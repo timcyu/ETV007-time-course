@@ -36,7 +36,7 @@ liverData = liverData %>% filter(!ID %in% c(39,53))
 autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), 
          data = liverData, colour = 'Treatment', size = 2.5) + 
   scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
-#ggsave('../figures/lipidomics_liver_pca.pdf', height = 3.5, width = 5)
+ggsave('../figures/lipidomics_liver_pca.pdf', height = 3.5, width = 5)
 ```
 ```{r}
 # make bubble plot
@@ -74,7 +74,7 @@ TG48_data %>%
   scale_y_discrete(limits = rev(factor(order))) + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank())
-#ggsave('../figures/lipidomics_liver_TG48_normliverweight_heatmap.pdf', height = 14, width = 9)
+ggsave('../figures/lipidomics_liver_TG48_normliverweight_heatmap.pdf', height = 14, width = 9)
 ```
 
 Plasma lipidomics 
@@ -93,7 +93,7 @@ autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = 
 ```{r}
 # PCA plot of plasma lipidomics data
 autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), data = plasmaData, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
-#ggsave('../figures/lipidomics_plasma_pca.pdf', height = 3.5, width = 5)
+ggsave('../figures/lipidomics_plasma_pca.pdf', height = 3.5, width = 5)
 ```
 ```{r}
 # make bubble plot
@@ -231,6 +231,29 @@ df %>%
 ggsave('../figures/lipidomics_plasma_liver_total_corr_heatmap.pdf', height = 4, width = 6)
 ```
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ```{r}
 left_join(totalLipidbyClass_liver, totalLipidbyClass_plasma, by=c("ID","RefinedClass", "Treatment")) %>%
   ggplot(aes(x=totalLipid.x, y=totalLipid.y)) +
@@ -248,45 +271,7 @@ df %>% ggplot(aes(x = LipidClass, y = Spearman_corr)) +
   geom_hline(yintercept=-1, color='maroon', linetype='dashed') +
   labs(y = 'Spearman correlation', x = 'Total lipid by class') +
   theme(legend.position = "None")
-
-ggsave('../figures/lipidomics_plasma_liver_total_corr.pdf', height = 5, width = 10)
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 ```{r}
 # load in data

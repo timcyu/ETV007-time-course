@@ -21,12 +21,12 @@ BA_totalpool = read.csv('../processed_data/datasets/BA_totalpool.csv', header = 
 ```{r}
 # PCA
 autoplot(prcomp(BA_totalpool[-c(1,2)], scale. = TRUE), data = BA_totalpool, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
-#ggsave('../figures/bile_acids_totalpool_pca.pdf', height = 3.5, width = 5)
+ggsave('../figures/bile_acids_totalpool_pca.pdf', height = 3.5, width = 5)
 ```
 
 ```{r}
 # bubble plot
-BA_totalpool_sub = BA_totalpool %>% select(
+BA_totalpool_sub = BA_totalpool %>% dplyr::select(
   ID, Treatment,
   `T-a-MCA`, `T-b-MCA`, `T-o-MCA`, `TCDCA`, `TCA`, `TDCA`, `TLCA`, `b-MCA`, `CA`
 )
@@ -34,6 +34,6 @@ BA_totalpool_sub = BA_totalpool %>% select(
 bubdata = makeBubbleData(BA_totalpool_sub)
 bubp = getBubbleSignificance(bubdata)
 makeBubblePlot(bubp, abundance=FALSE)
-#ggsave('../figures/bile_acids_bubble_plot.pdf', height = 4, width = 13)
+ggsave('../figures/bile_acids_bubble_plot.pdf', height = 4, width = 13)
 #write.csv(bubp, '../../ba_bubble_significance.csv')
 ```
