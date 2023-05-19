@@ -5,9 +5,6 @@
 ## Abstract
 (Abstract goes here)
 
-## Data visualization
-(Link to website goes here)
-
 ## Repository outline
 - [src](https://github.com/timcyu/ETV007-time-course/tree/master/src) contains R Markdown notebooks for analyzing data and generating figures.
 - [raw_data](https://github.com/timcyu/ETV007-time-course/tree/master/raw_data) contains lipidomics, bile acids, microbiome, and RNA-seq count datasets.
