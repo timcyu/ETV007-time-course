@@ -36,7 +36,7 @@ liverData = liverData %>% filter(!ID %in% c(39,53))
 autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), 
          data = liverData, colour = 'Treatment', size = 2.5) + 
   scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
-ggsave('../figures/lipidomics_liver_pca.pdf', height = 3.5, width = 5)
+#ggsave('../figures/lipidomics_liver_pca.pdf', height = 3.5, width = 5)
 ```
 ```{r}
 # make bubble plot
@@ -46,8 +46,8 @@ colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#
 bubdata = makeBubbleData(liverData)
 bubp = getBubbleSignificance(bubdata)
 makeBubblePlot(bubp, abundance=FALSE, colors=colors, bubble_range=c(3,10))
-ggsave('../figures/lipidomics_liver_bubble_plot.pdf', height = 5.5, width = 15)
-write.csv(bubp, '../processed_data/misc/lipidomics_liver_bubble_stats.csv')
+#ggsave('../figures/lipidomics_liver_bubble_plot.pdf', height = 5.5, width = 15)
+#write.csv(bubp, '../processed_data/misc/lipidomics_liver_bubble_stats.csv')
 ```
 
 ```{r}
@@ -69,9 +69,9 @@ order = c(unique((TG48_data %>% filter(Treatment == 'Chow8'))$ID),
 
 TG48_data %>%
   ggplot(aes(x = Feature, y = as.factor(ID))) + 
-  geom_tile(aes(fill = Value), alpha = 1, color = 'black', size = 0.1) + 
-  scale_fill_gradient2(low = "#0000FF", mid = "#FFFFFF", high ="#FF0000", midpoint=0) + 
-  scale_y_discrete(limits = rev(factor(order))) + 
+  geom_tile(aes(fill = Value), alpha = 1) + 
+  scale_fill_distiller(palette='RdYlBu') +
+  scale_y_discrete(limits = rev(factor(order))) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank())
 ggsave('../figures/lipidomics_liver_TG48_normliverweight_heatmap.pdf', height = 14, width = 9)
@@ -93,7 +93,7 @@ autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = 
 ```{r}
 # PCA plot of plasma lipidomics data
 autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), data = plasmaData, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
-ggsave('../figures/lipidomics_plasma_pca.pdf', height = 3.5, width = 5)
+#ggsave('../figures/lipidomics_plasma_pca.pdf', height = 3.5, width = 5)
 ```
 ```{r}
 # make bubble plot
@@ -103,8 +103,8 @@ colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#
 bubdata = makeBubbleData(plasmaData) %>% filter(!Feat %in% c("PE", "PE_O", "PE_P"))
 bubp = getBubbleSignificance(bubdata)
 makeBubblePlot(bubp, abundance=FALSE, colors=colors, bubble_range=c(3,10))
-ggsave('../figures/lipidomics_plasma_bubble_plot.pdf', height = 5, width = 15)
-write.csv(bubp, '../processed_data/misc/lipidomics_plasma_bubble_stats.csv')
+#ggsave('../figures/lipidomics_plasma_bubble_plot.pdf', height = 5, width = 15)
+#write.csv(bubp, '../processed_data/misc/lipidomics_plasma_bubble_stats.csv')
 ```
 
 ```{r}
@@ -126,8 +126,8 @@ order = c(unique((CE_data %>% filter(Treatment == 'Chow8'))$ID),
           unique((CE_data %>% filter(Treatment == 'WD8'))$ID))
 
 CE_data %>% ggplot(aes(x = Feature, y = as.factor(ID))) + 
-  geom_tile(aes(fill = Value), alpha = 1, color = 'black', size = 0.1) + 
-  scale_fill_gradient2(low = "#0000FF", mid = "#FFFFFF", high ="#FF0000", midpoint=0) + 
+  geom_tile(aes(fill = Value), alpha = 1) + 
+  scale_fill_distiller(palette='RdYlBu') +
   scale_y_discrete(limits = rev(factor(order))) + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank())
@@ -153,8 +153,8 @@ order = c(unique((plasma_TG48_data %>% filter(Treatment == 'Chow8'))$ID),
 
 plasma_TG48_data %>%
   ggplot(aes(x = Feature, y = as.factor(ID))) + 
-  geom_tile(aes(fill = Value), alpha = 1, color = 'black', size = 0.1) + 
-  scale_fill_gradient2(low = "#0000FF", mid = "#FFFFFF", high ="#FF0000", midpoint=0) + 
+  geom_tile(aes(fill = Value), alpha = 1) + 
+  scale_fill_distiller(palette='RdYlBu') +
   scale_y_discrete(limits = rev(factor(order))) + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank())
