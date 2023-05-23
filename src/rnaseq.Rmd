@@ -291,74 +291,68 @@ down02_down28_list = (
 save_list(down02_down28_list, 'down02_down28')
 ```
 
-We input the above gene lists into KEGG pathway enrichment via `http://bioinformatics.sdstate.edu/go/` using their default background option: all protein coding genes in the genome.
+We input the above gene lists into KEGG pathway enrichment via `https://biit.cs.ut.ee/gprofiler/gost`. We set organism to Mouse.
 
-We then filter out the outputted KEGG pathways by their:
-1. FDR < 0.05
-2. any obvious irrelevant pathways (i.e., cancer, viral infection, etc.)
-3. any super broad categories (i.e., metabolic pathways)
+We then filter out the outputted KEGG pathways by:
+1. any obvious irrelevant pathways (i.e., cancer, viral infection, etc.)
+
+Ran on 5/22/23.
 ```{r}
-kegg_02_up = read.csv('../processed_data/degenes/up_02_kegg.csv', header = TRUE) %>%
+kegg_02_up = read.csv('../processed_data/degenes/kegg_02_up.csv', header = TRUE) %>%
   mutate(comparison = 'up_02') %>%
-  filter(Enrichment.FDR < 0.05) %>%
-  filter(!Pathway %in% c('Coronavirus disease', 'Epstein-Barr virus infection', 
-                         'Neutrophil extracellular trap formation', 'Measles',
-                         'Osteoclast differentiation', 'Staphylococcus aureus infection', 
-                         'Hepatitis C', 'Influenza A',
-                         'Proteoglycans in cancer', 'Leishmaniasis', 
-                         'Acute myeloid leukemia', 'Cell adhesion molecules',
-                         'Hematopoietic cell lineage'))
+  filter(term_name %in% c('Complement and coagulation cascades', 
+                        'Leukocyte transendothelial migration'))
 
-kegg_02_down = read.csv('../processed_data/degenes/down_02_kegg.csv', header = TRUE) %>%
+kegg_02_down = read.csv('../processed_data/degenes/kegg_02_down.csv', header = TRUE) %>%
   mutate(comparison = 'down_02') %>%
-  filter(Enrichment.FDR < 0.05) %>%
-  filter(!Pathway %in% c('Metabolic pathways', 'Chemical carcinogenesis',
-                         'Drug metabolism'))
+  filter(!term_name %in% c('Chemical carcinogenesis - DNA adducts',
+                         'Chemical carcinogenesis - receptor activation',
+                         'Drug metabolism - other enzymes',
+                         'Drug metabolism - cytochrome P450',
+                         'Metabolism of xenobiotics by cytochrome P450'))
 
-kegg_28_up = read.csv('../processed_data/degenes/up_28_kegg.csv', header = TRUE) %>%
+kegg_28_up = read.csv('../processed_data/degenes/kegg_28_up.csv', header = TRUE) %>%
   mutate(comparison = 'up_28') %>%
-  filter(Enrichment.FDR < 0.05) %>%
-  filter(!Pathway %in% c('Focal adhesion', 'Axon guidance', 'Human papillomavirus infection',
-                         'Amoebiasis', 'MicroRNAs in cancer', 'Malaria', 'Rheumatoid arthritis',
-                         'Hepatitis B', 'Proteoglycans in cancer'))
+  filter(!term_name %in% c('Focal adhesion', 'Axon guidance', 'Human papillomavirus infection',
+                         'Amoebiasis'))
 
-kegg_28_down = read.csv('../processed_data/degenes/down_28_kegg.csv', header = TRUE) %>%
-  mutate(comparison = 'down_28') %>%
-  filter(Enrichment.FDR < 0.05)
+kegg_28_down = read.csv('../processed_data/degenes/kegg_28_down.csv', header = TRUE) %>%
+  mutate(comparison = 'down_28')
 
-kegg_02down_28up = read.csv('../processed_data/degenes/down02_up28_kegg.csv', header = TRUE) %>%
-  mutate(comparison = 'down02_up28') %>%
-  filter(Enrichment.FDR < 0.05) %>%
-  filter(!Pathway %in% c('Chemical carcinogenesis', 'Drug metabolism', 'Platinum drug resistance',
-                         'Metabolic pathways', 'Pathways in cancer'))
-
-kegg_df = rbind(kegg_02_up, kegg_02_down, kegg_28_up, kegg_28_down, kegg_02down_28up)
+kegg_df = rbind(kegg_02_up, kegg_02_down, kegg_28_up, kegg_28_down) %>%
+  mutate(
+    broad_comp = ifelse(comparison %in% c('up_02', 'down_02'), '02', '28'),
+    direct = ifelse(comparison %in% c('up_02', 'up_28'), 'up', 'down'),
+    signif = ifelse(
+      direct == 'up', 
+      negative_log10_of_adjusted_p_value, 
+      -negative_log10_of_adjusted_p_value
+    )
+  )
 ```
 
-Plot KEGG pathway enrichment.
 ```{r}
-plot_kegg <- function(data, fname, height, width, color) {
-  p = ggplot(data=data,
-         aes(x = reorder(Pathway, Fold.Enrichment), 
-             y = Fold.Enrichment, 
-             size = -log10(Enrichment.FDR))) + 
-  geom_point(alpha=1, shape=21, color="black", fill = color) +
-  scale_size(range = c(1, 5), name="-log10(Enrichment FDR)") +
+kegg_df %>% filter(broad_comp == '02') %>%
+  ggplot(aes(y = signif, x = reorder(term_name, signif))) +
+  geom_bar(aes(fill = direct), stat='identity', color='black', width = 0.75) +
+  scale_fill_manual(values=c('red', 'blue')) +
   coord_flip() +
-  labs(y = 'Fold Enrichment') +
-  theme(axis.title.y=element_blank()) +
-  theme(axis.title.y=element_blank(),
-        panel.grid.major.y = element_line(colour = "grey80", linetype = 'dashed')
-  ) 
-  
-  ggsave(plot=p, paste0('../figures/', fname, '.pdf'), height=height, width=width)
-}
+  ylim(-15,15) +
+  theme(legend.position = 'none') +
+  labs(x="", y='-log10(padj)', title='0 vs. 2 weeks WD')
+ggsave('../figures/rnaseq_02_kegg.pdf', height = 5, width = 7)
+```
 
-plot_kegg(kegg_02_up, 'rnaseq_kegg_02_up', height=4, width=8, color='blue')
-plot_kegg(kegg_02_down, 'rnaseq_kegg_02_down', height=4, width=8, color='red')
-plot_kegg(kegg_28_up, 'rnaseq_kegg_28_up', height=5, width=8, color='blue')
-plot_kegg(kegg_28_down, 'rnaseq_kegg_28_down', height=2, width=8, color='red')
-plot_kegg(kegg_02down_28up, 'rnaseq_kegg_02down_28up', height=3, width=8, color='#FFA500')
+```{r}
+kegg_df %>% filter(broad_comp == '28') %>%
+  ggplot(aes(y = signif, x = reorder(term_name, signif))) +
+  geom_bar(aes(fill = direct), stat='identity', color='black', width = 0.75) +
+  scale_fill_manual(values=c('red', 'blue')) +
+  coord_flip() +
+  ylim(-10,10) +
+  theme(legend.position = 'none') +
+  labs(x="", y='-log10(padj)', title='2 vs. 8 weeks WD')
+ggsave('../figures/rnaseq_28_kegg.pdf', height = 5, width = 8.5)
 ```
 
 ```{r}

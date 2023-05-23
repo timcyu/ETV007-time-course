@@ -1,0 +1,4 @@
+"source","term_name","term_id","highlighted","adjusted_p_value","negative_log10_of_adjusted_p_value","term_size","query_size","intersection_size","effective_domain_size","intersections"
+"KEGG","Complement and coagulation cascades","KEGG:04610","false","1.6017126433623086e-10","9.795415396239367","93","65","12","8947","VTN,C9,C6,C2,C8B,F11,FGB,FGG,C8A,SERPINF2,SERPINA1A,SERPINA1E"
+"KEGG","Tryptophan metabolism","KEGG:00380","false","0.03989730350090869","1.3990564555475637","51","65","4","8947","ACMSD,CYP1A2,CYP1A1,AOX3"
+"KEGG","Steroid hormone biosynthesis","KEGG:00140","false","0.042550640533672655","1.3710938979026435","92","65","5","8947","HSD17B2,CYP1A2,CYP1A1,HSD3B5,CYP7B1"

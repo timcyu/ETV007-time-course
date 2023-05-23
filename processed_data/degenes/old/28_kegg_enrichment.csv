@@ -1,8 +1,0 @@
-"Enrichment FDR","nGenes","Pathway Genes","Fold Enrichment","Pathway","URL","Genes"
-0.0163348181740736,4,73,11.6425056523474,"Metabolism of xenobiotics by cytochrome P450","http://www.genome.jp/kegg-bin/show_pathway?mmu00980 "," Gstm3  Cyp1a2  Gstp1  Gsta1"
-0.0163348181740736,4,71,11.9704635580473,"Drug metabolism","http://www.genome.jp/kegg-bin/show_pathway?mmu00982 "," Gstm3  Cyp1a2  Gstp1  Gsta1"
-0.0163348181740736,4,80,10.623786407767,"Platinum drug resistance","http://www.genome.jp/kegg-bin/show_pathway?mmu01524 "," Gstm3  Cdkn1a  Gstp1  Gsta1"
-0.0163348181740736,4,88,9.65798764342454,"ECM-receptor interaction","http://www.genome.jp/kegg-bin/show_pathway?mmu04512 "," Col1a1  Cd36  Tnc  Thbs1"
-0.0163348181740736,4,84,10.1178918169209,"Chemical carcinogenesis","http://www.genome.jp/kegg-bin/show_pathway?mmu05204 "," Gstm3  Cyp1a2  Gstp1  Gsta1"
-0.0163348181740736,5,145,7.32674924673586,"Fluid shear stress and atherosclerosis","http://www.genome.jp/kegg-bin/show_pathway?mmu05418 "," Gstm3  Plat  Gpc1  Gstp1  Gsta1"
-0.0462066894448493,5,201,5.28546587451094,"Proteoglycans in cancer","http://www.genome.jp/kegg-bin/show_pathway?mmu05205 "," Col1a1  Cdkn1a  Cd63  Gpc1  Thbs1"
