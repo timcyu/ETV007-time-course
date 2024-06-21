@@ -256,19 +256,34 @@ ggsave('../figures/microbiome_bacteroidete_species_x_TbMCA_neg.pdf', height = 4.
 ```
 
 ```{r}
-#biliary_BA_x_micro = read.csv('../processed_data/correlations/biliary_ba_x_microbiome.csv', 
-#                              header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
-#  left_join(., (tax_info %>% dplyr::select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
+# positive correlation plot between single verrucomicrobia species and T-b-MCA
+r = cor(
+  verruco_mat$`4306262`, 
+  BA_totalpool_mat$`T-b-MCA`,  
+  method = "pearson"
+)
 
-#liver_BA_x_micro = read.csv('../processed_data/correlations/liver_ba_x_microbiome.csv', 
-#                            header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
-#  left_join(., (tax_info %>% dplyr::select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
+ggplot(data=NULL,
+  aes(x=verruco_mat$`4306262`, y=BA_totalpool_mat$`T-b-MCA`)) +
+  geom_smooth(method='lm', se=FALSE) +
+  geom_point(size=2) + 
+  annotate("text", x=5000, y=20, size=5, label="italic(r) == 0.59", parse=TRUE) +
+  labs(y='T-b-MCA (nmol)', x='verrucomicrobia species 4306262 (rarefied counts)')
+ggsave('../figures/microbiome_verruco_species_x_TbMCA_pos_1.pdf', height = 4.3, width = 5)
+```
+```{r}
+# positive correlation plot between single verrucomicrobia species and T-b-MCA
+r = cor(
+  verruco_mat$`359376`, 
+  BA_totalpool_mat$`T-b-MCA`,  
+  method = "pearson"
+)
 
-#intestinal_BA_x_micro = read.csv('../processed_data/correlations/intestinal_ba_x_microbiome.csv', 
-#                                 header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) #%>%
-#  left_join(., (tax_info %>% dplyr::select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
-
-#total_BA_x_micro = read.csv('../processed_data/correlations/total_ba_x_microbiome.csv', 
-#                            header = TRUE, stringsAsFactors = FALSE, check.names = FALSE) %>%
-#  left_join(., (tax_info %>% dplyr::select(OTU, Rank2)), by=c("Microbiome_otu"="OTU"))
+ggplot(data=NULL,
+  aes(x=verruco_mat$`359376`, y=BA_totalpool_mat$`T-b-MCA`)) +
+  geom_smooth(method='lm', se=FALSE) +
+  geom_point(size=2) + 
+  annotate("text", x=3, y=20, size=5, label="italic(r) == 0.46", parse=TRUE) +
+  labs(y='T-b-MCA (nmol)', x='verrucomicrobia species 4306262 (rarefied counts)')
+ggsave('../figures/microbiome_verruco_species_x_TbMCA_pos_2.pdf', height = 4.3, width = 5)
 ```
