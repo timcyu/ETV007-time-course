@@ -284,6 +284,6 @@ ggplot(data=NULL,
   geom_smooth(method='lm', se=FALSE) +
   geom_point(size=2) + 
   annotate("text", x=3, y=20, size=5, label="italic(r) == 0.46", parse=TRUE) +
-  labs(y='T-b-MCA (nmol)', x='verrucomicrobia species 4306262 (rarefied counts)')
+  labs(y='T-b-MCA (nmol)', x='verrucomicrobia species 359376 (rarefied counts)')
 ggsave('../figures/microbiome_verruco_species_x_TbMCA_pos_2.pdf', height = 4.3, width = 5)
 ```
