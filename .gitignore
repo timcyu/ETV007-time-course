@@ -1,6 +1,6 @@
 .DS_Store
 .ipynb_checkpoints
-src/.Rhistory
-src/utils/.Rhistory
 .gitattributes
+src/utils/.Rhistory
+src/.Rhistory
 processed_data/correlations

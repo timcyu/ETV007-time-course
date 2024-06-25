@@ -7,7 +7,7 @@ setwd(dirname(rstudioapi::getSourceEditorContext()$path))
 
 # obtain top 50 most abundant TG species
 TAG = read.csv(
-  '../../processed_data/datasets/Lipidomics_liver.csv', 
+  '../../processed_data/datasets/Lipidomics_liver_normliverweight.csv', 
   header = TRUE, 
   stringsAsFactors = FALSE, 
   check.names = FALSE
@@ -27,7 +27,7 @@ TAG = read.csv(
 
 # extract remaining species that are not TAG
 other_species = read.csv(
-  '../../processed_data/datasets/Lipidomics_liver.csv', 
+  '../../processed_data/datasets/Lipidomics_liver_normliverweight.csv', 
   header = TRUE, 
   stringsAsFactors = FALSE, 
   check.names = FALSE
@@ -100,7 +100,7 @@ ht = Heatmap(
 )
 
 # overall heatmap
-pdf('../../figures/gene_heatmaps/gene_x_all.pdf', height=9, width=18)
+pdf('../../figures/gene_heatmaps/gene_x_all_normliverweight.pdf', height=9, width=18)
 ht = draw(ht)
 dev.off()
 
