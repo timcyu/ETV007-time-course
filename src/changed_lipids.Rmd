@@ -33,7 +33,7 @@ lipid_abundance = read.csv('../processed_data/datasets/Lipidomics_liver.csv', he
 ```{r}
 top50gene_x_liver_lipid_filtered = top50gene_x_liver_lipid %>% 
   mutate(abs_bicor = abs(bicor)) %>%
-  filter(abs_bicor > 0.7, adj_pval < 0.05) %>%
+  filter(abs_bicor > 0.8, adj_pval < 0.05) %>%
   group_by(Liver_lipid) %>%
   mutate(Num_significant_corrs = n()) %>%
   ungroup() %>%
