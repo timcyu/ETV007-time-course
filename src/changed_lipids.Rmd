@@ -40,7 +40,9 @@ top50gene_x_liver_lipid_filtered = top50gene_x_liver_lipid %>%
                               sub("\\.", "_", str_extract(Liver_lipid, "^PE\\..")),
                               str_extract(Liver_lipid, "^[^.]+"))) %>% drop_na() %>%
   left_join(., lipid_abundance, by = c("Liver_lipid"="Lipid")) %>%
-  filter(Max_abundance > 0.5)
+  group_by(Lipid_class) %>%
+  slice_max(order_by = Max_abundance, n = 50) %>%
+  ungroup()
 
 length(unique(top50gene_x_liver_lipid_filtered$Liver_lipid))
 
