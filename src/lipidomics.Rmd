@@ -131,7 +131,7 @@ CE_data %>% ggplot(aes(x = Feature, y = as.factor(ID))) +
   scale_y_discrete(limits = rev(factor(order))) + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank())
-ggsave('../figures/lipidomics_plasma_CE_heatmap.pdf', height = 14, width = 9)
+#ggsave('../figures/lipidomics_plasma_CE_heatmap.pdf', height = 14, width = 9)
 ```
 ```{r}
 # corresponding plot for plasma -- triglyceride abundance heat map for a specific TG class (TG48)
@@ -158,7 +158,7 @@ plasma_TG48_data %>%
   scale_y_discrete(limits = rev(factor(order))) + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank())
-ggsave('../figures/lipidomics_plasma_TG48_heatmap.pdf', height = 14, width = 9)
+#ggsave('../figures/lipidomics_plasma_TG48_heatmap.pdf', height = 14, width = 9)
 ```
 
 ```{r}

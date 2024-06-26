@@ -17,6 +17,20 @@ top50gene_x_liver_lipid = read.csv('../processed_data/correlations/top50gene_x_l
 ```
 
 ```{r}
+# too many lipids, so figure out which ones are most abundant
+lipid_abundance = read.csv('../processed_data/datasets/Lipidomics_liver.csv', header = TRUE,
+                     stringsAsFactors = FALSE, check.names = FALSE) %>%
+  pivot_longer(cols = -c(ID, Treatment),
+               names_to = "Lipid",
+               values_to = "Abundance") %>%
+  group_by(Lipid) %>%
+  mutate(Max_abundance = max(Abundance, na.rm = TRUE)) %>%
+  ungroup() %>%
+  select(Lipid, Max_abundance) %>%
+  distinct()
+```
+
+```{r}
 top50gene_x_liver_lipid_filtered = top50gene_x_liver_lipid %>% 
   filter(bicor > 0.7, adj_pval < 0.05) %>%
   group_by(Liver_lipid) %>%
@@ -24,6 +38,12 @@ top50gene_x_liver_lipid_filtered = top50gene_x_liver_lipid %>%
   ungroup() %>% 
   mutate(Lipid_class = ifelse(grepl("^PE\\.O\\.|^PE\\.P\\.", Liver_lipid),
                               sub("\\.", "_", str_extract(Liver_lipid, "^PE\\..")),
-                              str_extract(Liver_lipid, "^[^.]+"))) %>% drop_na()
-write.csv('../processed_data/correlations/plot_sig_top50gene_x_liver_lipid.csv')
+                              str_extract(Liver_lipid, "^[^.]+"))) %>% drop_na() %>%
+  left_join(., lipid_abundance, by = c("Liver_lipid"="Lipid")) %>%
+  filter(Max_abundance > 0.5)
+
+length(unique(top50gene_x_liver_lipid_filtered$Liver_lipid))
+
+write.csv(top50gene_x_liver_lipid_filtered,
+          '../processed_data/misc/plot_sig_top50gene_x_liver_lipid.csv', row.names = FALSE, quote = FALSE)
 ```

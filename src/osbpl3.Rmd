@@ -104,3 +104,8 @@ osbpl3_x_liver_lipid = read.csv(
                               sub("\\.", "_", str_extract(Liver_lipid, "^PE\\..")),
                               str_extract(Liver_lipid, "^[^.]+"))) %>% drop_na()
 ```
+
+```{r}
+ggplot(osbpl3_rna_lipid, aes(x =Osbpl3, y =`CE.20.2`)) + geom_point()
+
+```
