@@ -106,6 +106,14 @@ osbpl3_x_liver_lipid = read.csv(
 ```
 
 ```{r}
-ggplot(osbpl3_rna_lipid, aes(x =Osbpl3, y =`CE.20.2`)) + geom_point()
+library(readxl)
+osbpl3_crispr_data = read_excel('../raw_data/excel/20210623_Exp1_ETV203_Osbpl3.xlsx', 
+                                sheet = "Signif Species") %>%
+  rename(Liver_lipid = `...1`)
+
+```
+
+```{r}
+ggplot(osbpl3_rna_lipid, aes(x =Osbpl3, y =`CE.17.0`)) + geom_point()
 
 ```
