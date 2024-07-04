@@ -125,14 +125,37 @@ osbpl3_corrs = top50gene_x_liver_lipid %>%
 ```{r}
 # this is for making the Osbpl3 network figure!
 library(readxl)
+
+# Function to extract the number of double bonds from FA part
+get_double_bonds <- function(lipid) {
+  as.numeric(gsub(".*FA\\d+:(\\d+).*", "\\1", lipid))
+}
+
 osbpl3_crispr_data = read_excel('../raw_data/excel/20210623_Exp1_ETV203_Osbpl3.xlsx', 
                                 sheet = "Signif Species") %>%
   rename(Liver_lipid = `...1`) %>% 
   left_join(., osbpl3_corrs, by=c('Liver_lipid'='Lipid_formatted')) %>%
+  drop_na() %>%
   mutate(significant_corr = ifelse(adj_pval < 0.05, "yes", "no")) %>%
   mutate(fold_change = `Mean of Osbpl3 CRISPR` / `Mean of Control CRISPR`) %>%
   mutate(Gene = 'Osbpl3') %>%
-  drop_na()
+  mutate(chain_length = ifelse(
+    Lipid_class == "TG", 
+    as.numeric(sub(".*-FA(\\d+):.*", "\\1", Liver_lipid)), "N/A")
+  ) %>%
+  mutate(chain_class = ifelse(chain_length %in% c(14, 15), "medium chain",
+                       ifelse(chain_length %in% c(16, 17, 18), "long chain",
+                       ifelse(chain_length %in% c(20, 22), "very long chain", "N/A")))) %>%
+  mutate(saturation = ifelse(Lipid_class == "TG",
+    case_when(
+      get_double_bonds(Liver_lipid) >= 2 ~ "PUFA",
+      get_double_bonds(Liver_lipid) == 1 ~ "MUFA",
+      get_double_bonds(Liver_lipid) == 0 ~ "SFA",
+      TRUE ~ "Unknown"
+    ), "N/A")
+  ) %>%
+  mutate(TG_class = paste(chain_class, saturation, sep = " + "))
+
 write.csv(osbpl3_crispr_data, '../processed_data/misc/ETV203_Osbpl3_data.csv', row.names = FALSE, quote = FALSE)
 ```
 
