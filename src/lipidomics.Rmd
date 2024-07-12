@@ -76,6 +76,39 @@ TG48_data %>%
         axis.title.x = element_blank(), axis.title.y = element_blank())
 ggsave('../figures/lipidomics_liver_TG48_normliverweight_heatmap.pdf', height = 14, width = 9)
 ```
+```{r}
+TG48_data %>% 
+  group_by(Treatment, Feature) %>%
+  mutate(Mean_abundance = mean(Value)) %>%
+  select(Treatment, Feature, Mean_abundance) %>%
+  distinct() %>%
+  mutate(Saturation = case_when(
+    str_extract(Feature, "FA\\d+\\.\\d+$") %>% 
+      str_extract("\\d+$") %>% 
+      as.numeric() == 0 ~ "SFA",
+    str_extract(Feature, "FA\\d+\\.\\d+$") %>% 
+      str_extract("\\d+$") %>% 
+      as.numeric() == 1 ~ "MUFA",
+    str_extract(Feature, "FA\\d+\\.\\d+$") %>% 
+      str_extract("\\d+$") %>% 
+      as.numeric() > 1 ~ "PUFA",
+    TRUE ~ NA_character_
+  )) %>%
+  mutate(Treatment = fct_recode(Treatment,
+                             "0" = "Chow8",
+                             "2" = "WD2",
+                             "4" = "WD4",
+                             "6" = "WD6",
+                             "8" = "WD8")) %>%
+  ggplot(aes(x = Treatment, y = Mean_abundance, color = Saturation, group = Feature)) +
+  geom_line(size=1, alpha=0.7) +
+  scale_color_manual(values = c("SFA" = "#3969AC", "MUFA" = "#F2B701", "PUFA" = "#E73F74")) +
+  labs(x = "Weeks on Western Diet",
+       y = "Mean abundance (z-score)",
+       color = "Saturation") +
+  theme(legend.position = "right")
+ggsave('../figures/lipidomics_liver_TG48_saturation_change.pdf', height = 5, width = 7)
+```
 
 Plasma lipidomics 
 ```{r}
