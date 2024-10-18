@@ -35,5 +35,5 @@ bubdata = makeBubbleData(BA_totalpool_sub)
 bubp = getBubbleSignificance(bubdata)
 makeBubblePlot(bubp, abundance=FALSE)
 ggsave('../figures/bile_acids_bubble_plot.pdf', height = 4, width = 13)
-#write.csv(bubp, '../../ba_bubble_significance.csv')
+write.csv(bubp, '../../ba_bubble_significance.csv')
 ```

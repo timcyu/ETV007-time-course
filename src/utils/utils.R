@@ -166,6 +166,10 @@ makeBubblePlot <- function(
       ceiling(max(log10(pval_df$Median)))+1
     )
   }
+  
+  pval_df <- pval_df %>%
+    mutate(fill_color = ifelse(pval < 0.05, Feat, NA))
+  
   if(abundance == TRUE) {
     plot = pval_df %>%
       mutate(log2FoldChange = log2(FoldChange)) %>%
@@ -176,7 +180,7 @@ makeBubblePlot <- function(
         aes(x=log2FoldChange, 
             y=log10Abundance, 
             size=log10pval,
-            fill=Feat)
+            fill=fill_color)
       ) +
       geom_vline(
         xintercept=0, 
@@ -190,7 +194,7 @@ makeBubblePlot <- function(
         size=1
       ) +
       geom_point(
-        aes(fill=Feat), 
+        aes(fill=fill_color), 
         alpha=0.9,
         color='black',
         pch=21, 
@@ -203,7 +207,7 @@ makeBubblePlot <- function(
       ) +
       ylim(ylim) +
       xlim(xlim) +
-      scale_fill_manual(values=colors) +
+      scale_fill_manual(values=c(setNames(colors, unique(pval_df$Feat))), na.value = "white") +
       facet_grid(~Comparison, scales='fixed') +
       labs(x="log2(Fold-change)", y="log10(Abundance)")
   } else {
@@ -214,7 +218,7 @@ makeBubblePlot <- function(
         aes(x=log2FoldChange, 
             y=Feat, 
             size=log10pval,
-            fill=Feat)
+            fill=fill_color)
       ) +
       geom_vline(
         xintercept=0, 
@@ -222,7 +226,7 @@ makeBubblePlot <- function(
         color='black'
       ) +
       geom_point(
-        aes(fill=Feat), 
+        aes(fill=fill_color), 
         alpha=0.9,
         color='black',
         pch=21, 
@@ -234,7 +238,7 @@ makeBubblePlot <- function(
         name="Significance -log10(P)", 
       ) +
       xlim(xlim) +
-      scale_fill_manual(values=colors) +
+      scale_fill_manual(values=c(setNames(colors, unique(pval_df$Feat))), na.value = "white") +
       facet_grid(~Comparison, scales='fixed') +
       labs(x="log2(Fold-change)", y="feature")
   }
