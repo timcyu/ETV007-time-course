@@ -1,4 +1,4 @@
----
+--
 title: "Fig5"
 output: html_document
 ---
@@ -231,8 +231,9 @@ corr = bicorAndPvalue((RNAseq_mat %>% dplyr::select(-c('ID', 'Treatment'))),
 ```
 
 ```{r}
-gene_x_plasma_lipid = createCorrTable(corr, 'Gene', 'Plasma_lipid')
-write.csv(gene_x_plasma_lipid, '../processed_data/correlations/gene_x_plasma_lipid.csv', 
+gene_x_plasma_lipid = createCorrTable(corr, 'Gene', 'Plasma_lipid') %>%
+  filter(adj_pval < 0.05)
+write.csv(gene_x_plasma_lipid, '../processed_data/correlations/gene_x_plasma_lipid_adjpval0.05.csv', 
           row.names = FALSE)
 rm(gene_x_plasma_lipid, plasma_lipids_mat, RNAseq_mat)
 ```
@@ -326,7 +327,7 @@ corr = bicorAndPvalue((plasma_lipids_mat %>% dplyr::select(-c('ID', 'Treatment')
 plasma_lipid_x_microbiome = createCorrTable(corr, 'Plasma_lipid', 'Microbiome_otu')
 write.csv(plasma_lipid_x_microbiome,'../processed_data/correlations/plasma_lipid_x_microbiome.csv',
           row.names = FALSE)
-rm(plasma_lipid_x_microbiome, plasma_lipids_mat, microbiome)
+rm(plasma_lipid_x_microbiome, plasma_lipids_mat, microbiome_mat)
 ```
 
 Correlate microbiome -> RNA-seq
@@ -346,8 +347,9 @@ corr = bicorAndPvalue((RNAseq_mat %>% dplyr::select(-c('ID', 'Treatment'))),
 ```
 
 ```{r}
-gene_x_microbiome = createCorrTable(corr, 'Gene', 'Microbiome_otu')
-write.csv(gene_x_microbiome, '../processed_data/correlations/gene_x_microbiome.csv', row.names = FALSE)
+gene_x_microbiome = createCorrTable(corr, 'Gene', 'Microbiome_otu') %>%
+  filter(adj_pval < 0.05)
+write.csv(gene_x_microbiome, '../processed_data/correlations/gene_x_microbiome_adjpval0.05.csv', row.names = FALSE)
 rm(gene_x_microbiome, microbiome_mat, RNAseq_mat)
 ```
 
@@ -408,7 +410,7 @@ biliary_ba_mat = biliary_ba %>% filter(ID %in% common_ids) %>% arrange(ID)
 assertthat::are_equal(microbiome_mat$ID, biliary_ba_mat$ID)
 
 # correlate (NA's and missing values exist, so warnings expected)
-corr = bicorAndPvalue((biliary_ba_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
+corr = bicorAndPvalue((biliary_ba_mat %>% dplyr::select(-c('ID', 'Treatment'))),
                       (microbiome_mat %>% dplyr::select(-c('ID', 'Treatment')))
        )
 ```
@@ -431,7 +433,7 @@ total_ba_mat = total_ba %>% filter(ID %in% common_ids) %>% arrange(ID)
 assertthat::are_equal(microbiome_mat$ID, total_ba_mat$ID)
 
 # correlate (NA's and missing values exist, so warnings expected)
-corr = bicorAndPvalue((total_ba_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
+corr = bicorAndPvalue((total_ba_mat %>% dplyr::select(-c('ID', 'Treatment'))),
                       (microbiome_mat %>% dplyr::select(-c('ID', 'Treatment')))
        )
 ```
@@ -442,3 +444,26 @@ write.csv(total_ba_x_microbiome, '../processed_data/correlations/total_ba_x_micr
           row.names = FALSE)
 rm(total_ba_x_microbiome, microbiome_mat, total_ba_mat)
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

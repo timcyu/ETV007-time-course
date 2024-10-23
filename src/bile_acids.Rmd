@@ -37,3 +37,21 @@ makeBubblePlot(bubp, abundance=FALSE)
 ggsave('../figures/bile_acids_bubble_plot.pdf', height = 4, width = 13)
 write.csv(bubp, '../../ba_bubble_significance.csv')
 ```
+
+```{r}
+options(scipen=999)
+percent_BA = BA_totalpool %>% 
+  gather("bile_acid", "abundance", -c(ID, Treatment)) %>%
+  group_by(Treatment, bile_acid) %>%
+  mutate(median_abundance = median(abundance)) %>%
+  select(Treatment, bile_acid, median_abundance) %>%
+  ungroup() %>%
+  distinct() %>%
+  group_by(Treatment) %>%
+  mutate(total_abundance = sum(median_abundance)) %>%
+  mutate(percent_bile_acid = (median_abundance / total_abundance) * 100)
+  
+```
+
+
+
