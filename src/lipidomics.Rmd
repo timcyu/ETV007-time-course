@@ -36,7 +36,7 @@ liverData = liverData %>% filter(!ID %in% c(39,53))
 autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), 
          data = liverData, colour = 'Treatment', size = 2.5) + 
   scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
-ggsave('../figures/lipidomics_liver_pca.pdf', height = 3.5, width = 5)
+#ggsave('../figures/lipidomics_liver_pca.pdf', height = 3.5, width = 5)
 ```
 ```{r}
 # make bubble plot
@@ -46,8 +46,8 @@ colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#
 bubdata = makeBubbleData(liverData)
 bubp = getBubbleSignificance(bubdata)
 makeBubblePlot(bubp, abundance=FALSE, colors=colors, bubble_range=c(3,10))
-ggsave('../figures/lipidomics_liver_bubble_plot.pdf', height = 5.5, width = 15)
-write.csv(bubp, '../processed_data/misc/lipidomics_liver_bubble_stats.csv')
+#ggsave('../figures/lipidomics_liver_bubble_plot.pdf', height = 5.5, width = 15)
+#write.csv(bubp, '../processed_data/misc/lipidomics_liver_bubble_stats.csv')
 ```
 
 ```{r}
@@ -74,8 +74,50 @@ TG48_data %>%
   scale_y_discrete(limits = rev(factor(order))) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank())
-ggsave('../figures/lipidomics_liver_TG48_normliverweight_heatmap.pdf', height = 14, width = 9)
+#ggsave('../figures/lipidomics_liver_TG48_normliverweight_heatmap.pdf', height = 14, width = 9)
 ```
+```{r}
+TG_data = scaled_liverData %>%
+  select_if(~ !any(is.na(.))) %>%
+  gather(Feature, Value, 3:ncol(.)) %>%
+  separate(col = 'Feature', into = c("Class", "Chain"), sep = "\\.", 
+          remove = FALSE, extra = 'drop') %>%
+  filter(Class == 'TG') %>%
+  group_by(Treatment, Feature, Chain) %>%
+  mutate(Mean_abundance = mean(Value)) %>%
+  select(Treatment, Feature, Chain, Mean_abundance) %>%
+  distinct() %>%
+  mutate(Saturation = case_when(
+    str_extract(Feature, "FA\\d+\\.\\d+$") %>% 
+      str_extract("\\d+$") %>% 
+      as.numeric() == 0 ~ "SFA",
+    str_extract(Feature, "FA\\d+\\.\\d+$") %>% 
+      str_extract("\\d+$") %>% 
+      as.numeric() == 1 ~ "MUFA",
+    str_extract(Feature, "FA\\d+\\.\\d+$") %>% 
+      str_extract("\\d+$") %>% 
+      as.numeric() > 1 ~ "PUFA",
+    TRUE ~ NA_character_
+  )) %>%
+  mutate(Treatment = fct_recode(Treatment,
+                             "0" = "Chow8",
+                             "2" = "WD2",
+                             "4" = "WD4",
+                             "6" = "WD6",
+                             "8" = "WD8")) 
+
+TG_data %>% 
+  ggplot(aes(x = Treatment, y = Mean_abundance, color = Saturation, group = Feature)) +
+  geom_line(size=0.5, alpha=0.7) +
+  scale_color_manual(values = c("SFA" = "#3969AC", "MUFA" = "#F2B701", "PUFA" = "#E73F74")) +
+  labs(x = "Weeks on Western Diet",
+       y = "Mean abundance (z-score)",
+       color = "Saturation") +
+  theme(legend.position = "right") +
+  facet_wrap(~Chain, scales = 'free')
+ggsave('../figures/lipidomics_liver_TG_saturation_change.pdf', height = 7, width = 11)
+```
+
 ```{r}
 TG48_data %>% 
   group_by(Treatment, Feature) %>%
@@ -107,7 +149,7 @@ TG48_data %>%
        y = "Mean abundance (z-score)",
        color = "Saturation") +
   theme(legend.position = "right")
-ggsave('../figures/lipidomics_liver_TG48_saturation_change.pdf', height = 5, width = 7)
+#ggsave('../figures/lipidomics_liver_TG48_saturation_change.pdf', height = 5, width = 7)
 ```
 
 Plasma lipidomics 
