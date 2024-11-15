@@ -78,7 +78,7 @@ TG48_data %>%
 ```
 
 ```{r}
-TG_data = scaled_liverData %>%
+mean_TG_data = scaled_liverData %>%
   select_if(~ !any(is.na(.))) %>%
   gather(Feature, Value, 3:ncol(.)) %>%
   separate(col = 'Feature', into = c("Class", "Chain"), sep = "\\.", 
@@ -113,7 +113,7 @@ TG_data = scaled_liverData %>%
   )
 )
 
-TG_data %>% 
+mean_TG_data %>% 
   ggplot(aes(x = Treatment, y = Mean_abundance, color = Saturation, group = Feature)) +
   geom_line(data = . %>% filter(Saturation == "PUFA"), size=0.5, alpha=0.7) +
   geom_line(data = . %>% filter(Saturation == "MUFA"), size=0.5, alpha=0.7) +
@@ -128,7 +128,7 @@ TG_data %>%
 ```
 
 ```{r}
-TG_data %>% 
+mean_TG_data %>% 
   ggplot(aes(x = Treatment, y = Mean_abundance, color = Saturation, group = Feature)) +
   geom_line(size=0.5, alpha=0.7) +
   scale_color_manual(values = c("SFA" = "#3969AC", "MUFA" = "#F2B701", "PUFA" = "#E73F74")) +
@@ -139,7 +139,45 @@ TG_data %>%
   facet_wrap(~Saturation, scales = 'free')
 #ggsave('../figures/lipidomics_liver_TG_saturation_change.pdf', height = 3, width = 9)
 ```
+```{r}
+TG_data = scaled_liverData %>%
+  select_if(~ !any(is.na(.))) %>%
+  gather(Feature, Value, 3:ncol(.)) %>%
+  separate(col = 'Feature', into = c("Class", "Chain"), sep = "\\.", 
+          remove = FALSE, extra = 'drop') %>%
+  filter(Class == 'TG') %>%
+  mutate(Saturation = case_when(
+    str_extract(Feature, "TG\\.\\d+\\.\\d+") %>% 
+      str_extract("\\.\\d+$") %>%
+      str_replace("\\.", "") %>%
+      as.numeric() == 0 ~ "SFA",
+    str_extract(Feature, "TG\\.\\d+\\.\\d+") %>% 
+      str_extract("\\.\\d+$") %>%
+      str_replace("\\.", "") %>%
+      as.numeric() == 1 ~ "MUFA",
+    str_extract(Feature, "TG\\.\\d+\\.\\d+") %>% 
+      str_extract("\\.\\d+$") %>%
+      str_replace("\\.", "") %>%
+      as.numeric() > 1 ~ "PUFA",
+    TRUE ~ NA_character_
+  ))
 
+order = c(unique((TG48_data %>% filter(Treatment == 'Chow8'))$ID),
+          unique((TG48_data %>% filter(Treatment == 'WD2'))$ID),
+          unique((TG48_data %>% filter(Treatment == 'WD4'))$ID),
+          unique((TG48_data %>% filter(Treatment == 'WD6'))$ID),
+          unique((TG48_data %>% filter(Treatment == 'WD8'))$ID))
+
+TG_data %>%
+  ggplot(aes(x = Feature, y = as.factor(ID))) + 
+  geom_tile(aes(fill = Value), alpha = 1) + 
+  scale_fill_distiller(palette='RdYlBu', limits = c(NA, 3), oob = scales::squish) +
+  scale_y_discrete(limits = rev(factor(order))) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
+        axis.title.x = element_blank(), axis.title.y = element_blank()) +
+  facet_wrap(~Saturation, scales = 'free')
+#ggsave('../figures/lipidomics_liver_allTG_heatmap.pdf', height = 15, width = 30)
+```
 
 ```{r}
 TG48_data %>% 
