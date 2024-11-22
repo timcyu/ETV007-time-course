@@ -63,7 +63,7 @@ levels(vsd$condition) = c("CHOW8", "WD2", "WD4", "WD6", "WD8")
 plotPCA(vsd) + 
   scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'), 
                      name = "Treatment")
-ggsave('../figures/rnaseq_pca.pdf', height = 4.5, width = 5)
+#ggsave('../figures/rnaseq_pca.pdf', height = 4.5, width = 5)
 ```
 Check normalized data.
 ```{r}
@@ -91,13 +91,13 @@ for(i in c(0, 2, 4, 6)) {
       
       # create custom key-value pairs for 'up-regulated', 'down-regulated', 'non-significant'
       keyvals <- ifelse(
-        res$log2FoldChange > 0.5 & res$padj < 0.05, 'blue', ifelse(
-          res$log2FoldChange < -0.5 & res$padj < 0.05, 'red', 'gray40'
+        abs(res$log2FoldChange) > 0.5 & res$padj < 0.05, 'red', ifelse(
+          res$padj < 0.05, 'blue', 'gray40'
         )
       )
       keyvals[is.na(keyvals)] <- 'gray40'
-      names(keyvals)[keyvals == 'blue'] <- 'up-regulated'
-      names(keyvals)[keyvals == 'red'] <- 'down-regulated'
+      names(keyvals)[keyvals == 'blue'] <- 'padj < 0.05'
+      names(keyvals)[keyvals == 'red'] <- 'padj < 0.05 and log2FC > 0.5'
       names(keyvals)[keyvals == 'gray40'] <- 'NS'
       
       EnhancedVolcano(res, 
