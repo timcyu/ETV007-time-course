@@ -1,45 +1,43 @@
----
-title: "Lipidomics analysis"
-author: "Timothy Yu"
-output: github_document
----
-```{r setup, include = FALSE}
-library(tidyverse)
-library(ggfortify)
-library(bnstruct)
-library(viridis)
-library(DescTools)
-library(RColorBrewer)
-require(cowplot)
-theme_set(theme_cowplot())
-source('utils/utils.R')
-knitr::opts_chunk$set(echo = TRUE)
-```
+Lipidomics analysis
+================
+Timothy Yu
 
-Liver lipidomics 
-```{r}
+Liver lipidomics
+
+``` r
 liverData = read.csv('../processed_data/datasets/Lipidomics_liver_normliverweight.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
 ```
 
-```{r}
+``` r
 autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), 
          data = liverData, colour = 'Treatment', 
          size = 0.1, label = TRUE, label.size = 3, frame = TRUE, frame.type = 'norm', 
          frame.level = 0.90) + 
          scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41')) +
          scale_fill_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
+```
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-20-1.png)<!-- -->
+
+``` r
 # By 90% confidence ellipse, Mice 53 and 39 are outliers. We will remove them and re-plot the PCA. They are also excluded from the remaining analysis.
 ```
 
-```{r}
+``` r
 # PCA plot of liver lipidomics data
 liverData = liverData %>% filter(!ID %in% c(39,53))
 autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), 
          data = liverData, colour = 'Treatment', size = 2.5) + 
   scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
+```
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-21-1.png)<!-- -->
+
+``` r
 #ggsave('../figures/lipidomics_liver_pca.pdf', height = 3.5, width = 5)
 ```
-```{r}
+
+``` r
 # make bubble plot
 colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0",
             "#9F044D", "#077E97", "#C5944E", "#034E61", "#FFA040", "#606060", "#fcfc81")
@@ -47,11 +45,16 @@ colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#
 bubdata = makeBubbleData(liverData)
 bubp = getBubbleSignificance(bubdata)
 makeBubblePlot(bubp, abundance=FALSE, colors=colors, bubble_range=c(3,10))
+```
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-22-1.png)<!-- -->
+
+``` r
 #ggsave('../figures/lipidomics_liver_bubble_plot.pdf', height = 5.5, width = 15)
 #write.csv(bubp, '../processed_data/misc/lipidomics_liver_bubble_stats.csv')
 ```
 
-```{r}
+``` r
 # triglyceride abundance heat map for a specific TG class (TG48)
 scaled_liverData = cbind(liverData[,c(1,2)], scale(liverData[,-c(1,2)])) # mean 0, sd 1
 
@@ -75,10 +78,15 @@ TG48_data %>%
   scale_y_discrete(limits = rev(factor(order))) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank())
+```
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+
+``` r
 #ggsave('../figures/lipidomics_liver_TG48_normliverweight_heatmap.pdf', height = 14, width = 9)
 ```
 
-```{r}
+``` r
 mean_TG_data = scaled_liverData %>%
   select_if(~ !any(is.na(.))) %>%
   gather(Feature, Value, 3:ncol(.)) %>%
@@ -125,10 +133,15 @@ mean_TG_data %>%
        color = "Saturation") +
   theme(legend.position = "right") +
   facet_wrap(~Chain, scales = 'free')
+```
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-24-1.png)<!-- -->
+
+``` r
 #ggsave('../figures/lipidomics_liver_TG_saturation_by_chain.pdf', height = 7, width = 11)
 ```
 
-```{r}
+``` r
 mean_TG_data %>% 
   ggplot(aes(x = Treatment, y = Mean_abundance, color = Saturation, group = Feature)) +
   geom_line(size=0.5, alpha=0.7) +
@@ -138,9 +151,15 @@ mean_TG_data %>%
        color = "Saturation") +
   theme(legend.position = "right") +
   facet_wrap(~Saturation, scales = 'free')
+```
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-25-1.png)<!-- -->
+
+``` r
 #ggsave('../figures/lipidomics_liver_TG_saturation_change.pdf', height = 3, width = 9)
 ```
-```{r}
+
+``` r
 TG_data = scaled_liverData %>%
   select_if(~ !any(is.na(.))) %>%
   gather(Feature, Value, 3:ncol(.)) %>%
@@ -177,10 +196,15 @@ TG_data %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank()) +
   facet_wrap(~Saturation, scales = 'free')
+```
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-26-1.png)<!-- -->
+
+``` r
 #ggsave('../figures/lipidomics_liver_allTG_heatmap.pdf', height = 15, width = 30)
 ```
 
-```{r}
+``` r
 TG48_data %>% 
   group_by(Treatment, Feature) %>%
   mutate(Mean_abundance = mean(Value)) %>%
@@ -211,15 +235,391 @@ TG48_data %>%
        y = "Mean abundance (z-score)",
        color = "Saturation") +
   theme(legend.position = "right")
+```
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: WD2, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD4, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD6, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD8
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+    ## Warning: Unknown levels in `f`: Chow8, WD2, WD4, WD6
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-27-1.png)<!-- -->
+
+``` r
 #ggsave('../figures/lipidomics_liver_TG48_saturation_change.pdf', height = 5, width = 7)
 ```
 
-Plasma lipidomics 
-```{r}
+Plasma lipidomics
+
+``` r
 plasmaData = read.csv('../processed_data/datasets/Lipidomics_plasma.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
 ```
 
-```{r}
+``` r
 autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), 
          data = plasmaData, colour = 'Treatment', 
          size = 0.1, label = TRUE, label.size = 3, frame = TRUE, frame.type = 'norm', 
@@ -227,12 +627,21 @@ autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = 
          scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41')) +
          scale_fill_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
 ```
-```{r}
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-29-1.png)<!-- -->
+
+``` r
 # PCA plot of plasma lipidomics data
 autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), data = plasmaData, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
+```
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-30-1.png)<!-- -->
+
+``` r
 #ggsave('../figures/lipidomics_plasma_pca.pdf', height = 3.5, width = 5)
 ```
-```{r}
+
+``` r
 # make bubble plot
 colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0",
             "#9F044D", "#077E97", "#606060", "#fcfc81")
@@ -240,11 +649,16 @@ colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#
 bubdata = makeBubbleData(plasmaData) %>% filter(!Feat %in% c("PE", "PE_O", "PE_P"))
 bubp = getBubbleSignificance(bubdata)
 makeBubblePlot(bubp, abundance=FALSE, colors=colors, bubble_range=c(3,10))
+```
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-31-1.png)<!-- -->
+
+``` r
 #ggsave('../figures/lipidomics_plasma_bubble_plot.pdf', height = 5, width = 15)
 #write.csv(bubp, '../processed_data/misc/lipidomics_plasma_bubble_stats.csv')
 ```
 
-```{r}
+``` r
 # CE abundance heat map for a specific CE (CE(18:1))
 abundant_CE = plasmaData %>% select(grep("CE", colnames(.))) %>%
   colMeans() %>% as.data.frame() %>%
@@ -268,9 +682,15 @@ CE_data %>% ggplot(aes(x = Feature, y = as.factor(ID))) +
   scale_y_discrete(limits = rev(factor(order))) + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank())
+```
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-32-1.png)<!-- -->
+
+``` r
 #ggsave('../figures/lipidomics_plasma_CE_heatmap.pdf', height = 14, width = 9)
 ```
-```{r}
+
+``` r
 # corresponding plot for plasma -- triglyceride abundance heat map for a specific TG class (TG48)
 scaled_plasmaData = cbind(plasmaData[,c(1,2)], scale(plasmaData[,-c(1,2)])) # mean 0, sd 1
 
@@ -295,9 +715,15 @@ plasma_TG48_data %>%
   scale_y_discrete(limits = rev(factor(order))) + 
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1), 
         axis.title.x = element_blank(), axis.title.y = element_blank())
+```
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-33-1.png)<!-- -->
+
+``` r
 #ggsave('../figures/lipidomics_plasma_TG48_heatmap.pdf', height = 14, width = 9)
 ```
-```{r}
+
+``` r
 mean_plasma_TG_data = scaled_plasmaData %>%
   select_if(~ !any(is.na(.))) %>%
   gather(Feature, Value, 3:ncol(.)) %>%
@@ -345,7 +771,9 @@ mean_plasma_TG_data %>%
   facet_wrap(~Saturation, scales = 'free')
 ```
 
-```{r}
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-34-1.png)<!-- -->
+
+``` r
 # correlate total lipid classes between liver and plasma
 totalLipidbyClass_liver = liverData %>%
   gather(Feature, Value, 3:ncol(.)) %>%
@@ -412,5 +840,10 @@ df %>%
   geom_tile(aes(fill=Spearman_corr), alpha=1, color='black', size=0.1) +
   scale_fill_gradient2(low = "#0000FF", mid = "#FFFFFF", high ="#FF0000", midpoint=0) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+```
+
+![](/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-35-1.png)<!-- -->
+
+``` r
 ggsave('../figures/lipidomics_plasma_liver_total_corr_heatmap.pdf', height = 4, width = 6)
 ```
