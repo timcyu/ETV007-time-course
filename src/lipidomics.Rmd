@@ -1,8 +1,9 @@
 ---
 title: "Lipidomics analysis"
 author: "Timothy Yu"
----
+output: rmarkdown::github_document
 
+---
 ```{r setup, include = FALSE}
 library(tidyverse)
 library(ggfortify)
@@ -13,6 +14,7 @@ library(RColorBrewer)
 require(cowplot)
 theme_set(theme_cowplot())
 source('utils/utils.R')
+knitr::opts_chunk$set(echo = TRUE)
 ```
 
 Liver lipidomics 
