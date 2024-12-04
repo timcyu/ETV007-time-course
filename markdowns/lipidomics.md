@@ -7,6 +7,11 @@ This notebook analyzes the liver and plasma lipidomics datasets.
 ``` r
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(dev.args = list(png = list(type = "cairo")))
+
+if(!file.exists('../markdowns/lipidomics_files')){
+  dir.create(file.path('../markdowns/lipidomics_files'))
+  
+}
 ```
 
 Read in liver lipidomics dataset.
@@ -27,7 +32,7 @@ autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = T
          scale_fill_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
 ```
 
-<img src="/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-36-1.png" style="display: block; margin: auto;" />
+<img src="lipidomics_files/figure-gfm/unnamed-chunk-4-1.png" style="display: block; margin: auto;" />
 
 PCA plot of liver lipidomics data.
 
@@ -38,7 +43,7 @@ autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = T
   scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
 ```
 
-<img src="/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-37-1.png" style="display: block; margin: auto;" />
+<img src="lipidomics_files/figure-gfm/unnamed-chunk-5-1.png" style="display: block; margin: auto;" />
 
 ``` r
 #ggsave('../figures/lipidomics_liver_pca.pdf', height = 3.5, width = 5)
@@ -55,7 +60,7 @@ bubp = getBubbleSignificance(bubdata)
 makeBubblePlot(bubp, abundance=FALSE, colors=colors, bubble_range=c(3,10))
 ```
 
-<img src="/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-38-1.png" style="display: block; margin: auto;" />
+<img src="lipidomics_files/figure-gfm/unnamed-chunk-6-1.png" style="display: block; margin: auto;" />
 
 ``` r
 #ggsave('../figures/lipidomics_liver_bubble_plot.pdf', height = 5.5, width = 15)
@@ -113,7 +118,7 @@ mean_TG_data %>%
   facet_wrap(~Saturation, scales = 'free')
 ```
 
-<img src="/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-39-1.png" style="display: block; margin: auto;" />
+<img src="lipidomics_files/figure-gfm/unnamed-chunk-7-1.png" style="display: block; margin: auto;" />
 
 ``` r
 #ggsave('../figures/lipidomics_liver_TG_saturation_change.pdf', height = 3, width = 9)
@@ -136,14 +141,14 @@ autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = 
          scale_fill_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
 ```
 
-<img src="/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-41-1.png" style="display: block; margin: auto;" />
+<img src="lipidomics_files/figure-gfm/unnamed-chunk-9-1.png" style="display: block; margin: auto;" />
 PCA plot of plasma lipidomics data
 
 ``` r
 autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), data = plasmaData, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
 ```
 
-<img src="/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-42-1.png" style="display: block; margin: auto;" />
+<img src="lipidomics_files/figure-gfm/unnamed-chunk-10-1.png" style="display: block; margin: auto;" />
 
 ``` r
 #ggsave('../figures/lipidomics_plasma_pca.pdf', height = 3.5, width = 5)
@@ -160,7 +165,7 @@ bubp = getBubbleSignificance(bubdata)
 makeBubblePlot(bubp, abundance=FALSE, colors=colors, bubble_range=c(3,10))
 ```
 
-<img src="/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-43-1.png" style="display: block; margin: auto;" />
+<img src="lipidomics_files/figure-gfm/unnamed-chunk-11-1.png" style="display: block; margin: auto;" />
 
 ``` r
 #ggsave('../figures/lipidomics_plasma_bubble_plot.pdf', height = 5, width = 15)
@@ -194,7 +199,7 @@ CE_data %>% ggplot(aes(x = Feature, y = as.factor(ID))) +
         axis.title.x = element_blank(), axis.title.y = element_blank())
 ```
 
-<img src="/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-44-1.png" style="display: block; margin: auto;" />
+<img src="lipidomics_files/figure-gfm/unnamed-chunk-12-1.png" style="display: block; margin: auto;" />
 
 ``` r
 #ggsave('../figures/lipidomics_plasma_CE_heatmap.pdf', height = 14, width = 9)
@@ -252,7 +257,7 @@ mean_plasma_TG_data %>%
   facet_wrap(~Saturation, scales = 'free')
 ```
 
-<img src="/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-45-1.png" style="display: block; margin: auto;" />
+<img src="lipidomics_files/figure-gfm/unnamed-chunk-13-1.png" style="display: block; margin: auto;" />
 
 ``` r
 #ggsave('../figures/lipidomics_plasma_TG_saturation_change.pdf', height = 3, width = 9)
@@ -329,8 +334,12 @@ df %>%
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 ```
 
-<img src="/Users/timyu/Desktop/ETV007-time-course/markdowns/lipidomics_files/figure-gfm/unnamed-chunk-46-1.png" style="display: block; margin: auto;" />
+<img src="lipidomics_files/figure-gfm/unnamed-chunk-14-1.png" style="display: block; margin: auto;" />
 
 ``` r
 #ggsave('../figures/lipidomics_plasma_liver_total_corr_heatmap.pdf', height = 4, width = 6)
+```
+
+``` r
+# rmarkdown::render("lipidomics.Rmd", output_format="github_document", output_dir="../markdowns")
 ```

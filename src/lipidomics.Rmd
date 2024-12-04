@@ -24,6 +24,11 @@ source('utils/utils.R')
 ```{r}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(dev.args = list(png = list(type = "cairo")))
+
+if(!file.exists('../markdowns/lipidomics_files')){
+  dir.create(file.path('../markdowns/lipidomics_files'))
+  
+}
 ```
 
 Read in liver lipidomics dataset.
