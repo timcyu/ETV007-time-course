@@ -1,3 +1,14 @@
+---
+title: "Analysis of RNA-seq data"
+author: "Timothy Yu"
+output: 
+  github_document:
+    toc: true
+    html_preview: false
+editor_options:
+  chunk_output_type: inline
+---
+This notebook analyzes the RNA-seq dataset.
 ```{r, include = FALSE}
 library(dplyr)
 library(tidyr)
