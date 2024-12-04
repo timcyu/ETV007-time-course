@@ -22,13 +22,12 @@ source('utils/utils.R')
 ```
 
 ```{r}
+sessionInfo()
+```
+
+```{r}
 knitr::opts_chunk$set(echo = TRUE)
 knitr::opts_chunk$set(dev.args = list(png = list(type = "cairo")))
-
-if(!file.exists('../markdowns/lipidomics_files')){
-  dir.create(file.path('../markdowns/lipidomics_files'))
-  
-}
 ```
 
 Read in liver lipidomics dataset.
@@ -37,7 +36,7 @@ liverData = read.csv('../processed_data/datasets/Lipidomics_liver_normliverweigh
 ```
 
 By 90% confidence ellipse, Mice 53 and 39 are outliers. We will remove them and re-plot the PCA. They are excluded from the remaining analysis.
-```{r, echo=T, fig.width=3, fig.height=2, fig.align="center", dpi=300, dev="png"}
+```{r lipid1, echo=T, fig.width=6, fig.height=4, fig.align="center", dpi=300, dev="png"}
 autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), 
          data = liverData, colour = 'Treatment', 
          size = 0.1, label = TRUE, label.size = 3, frame = TRUE, frame.type = 'norm', 
@@ -47,7 +46,7 @@ autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = T
 ```
 
 PCA plot of liver lipidomics data.
-```{r, echo=T, fig.width=3, fig.height=2, fig.align="center", dpi=300, dev="png"}
+```{r lipid2, echo=T, fig.width=6, fig.height=4, fig.align="center", dpi=300, dev="png"}
 liverData = liverData %>% filter(!ID %in% c(39,53))
 autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), 
          data = liverData, colour = 'Treatment', size = 2.5) + 
@@ -56,7 +55,7 @@ autoplot(prcomp((liverData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = T
 #ggsave('../figures/lipidomics_liver_pca.pdf', height = 3.5, width = 5)
 ```
 Bubble plot showing relative fold-change in liver lipid abundance.
-```{r, echo=T, fig.width=7, fig.height=3, fig.align="center", dpi=300, dev="png"}
+```{r lipid3, echo=T, fig.width=10, fig.height=5, fig.align="center", dpi=300, dev="png"}
 colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0",
             "#9F044D", "#077E97", "#C5944E", "#034E61", "#FFA040", "#606060", "#fcfc81")
 
@@ -68,7 +67,7 @@ makeBubblePlot(bubp, abundance=FALSE, colors=colors, bubble_range=c(3,10))
 #write.csv(bubp, '../processed_data/misc/lipidomics_liver_bubble_stats.csv')
 ```
 Abundance of individual hepatic TG species split by SFA, MUFA, and PUFA.
-```{r, echo=T, fig.width=4.5, fig.height=1.5, fig.align="center", dpi=300, dev="png"}
+```{r lipid4, echo=T, fig.width=9, fig.height=3, fig.align="center", dpi=300, dev="png"}
 scaled_liverData = cbind(liverData[,c(1,2)], scale(liverData[,-c(1,2)])) # mean 0, sd 1
 
 mean_TG_data = scaled_liverData %>%
@@ -126,7 +125,7 @@ plasmaData = read.csv('../processed_data/datasets/Lipidomics_plasma.csv', header
 ```
 
 Plot PCA. There are no outliers.
-```{r, echo=T, fig.width=3, fig.height=2, fig.align="center", dpi=300, dev="png"}
+```{r lipid5, echo=T, fig.width=6, fig.height=4, fig.align="center", dpi=300, dev="png"}
 autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), 
          data = plasmaData, colour = 'Treatment', 
          size = 0.1, label = TRUE, label.size = 3, frame = TRUE, frame.type = 'norm', 
@@ -135,13 +134,13 @@ autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = 
          scale_fill_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
 ```
 PCA plot of plasma lipidomics data
-```{r, echo=T, fig.width=3, fig.height=2, fig.align="center", dpi=300, dev="png"}
+```{r lipid6, echo=T, fig.width=6, fig.height=4, fig.align="center", dpi=300, dev="png"}
 autoplot(prcomp((plasmaData[-c(1,2)] %>% select_if(~ !any(is.na(.)))), scale. = TRUE), data = plasmaData, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
 
 #ggsave('../figures/lipidomics_plasma_pca.pdf', height = 3.5, width = 5)
 ```
 Bubble plot showing relative fold-change in plasma lipid abundance.
-```{r, echo=T, fig.width=7, fig.height=3, fig.align="center", dpi=300, dev="png"}
+```{r lipid7, echo=T, fig.width=10, fig.height=5, fig.align="center", dpi=300, dev="png"}
 colors <- c("#A00000", "#00C000", "#5757F9", "#FF6000", "#0000C0", "#C0C000", "#D7B0B0",
             "#9F044D", "#077E97", "#606060", "#fcfc81")
 
@@ -153,7 +152,7 @@ makeBubblePlot(bubp, abundance=FALSE, colors=colors, bubble_range=c(3,10))
 #write.csv(bubp, '../processed_data/misc/lipidomics_plasma_bubble_stats.csv')
 ```
 Plot abundance of plasma CE species.
-```{r, echo=T, fig.width=3, fig.height=7, fig.align="center", dpi=300, dev="png"}
+```{r lipid8, echo=T, fig.width=5, fig.height=10, fig.align="center", dpi=300, dev="png"}
 abundant_CE = plasmaData %>% select(grep("CE", colnames(.))) %>%
   colMeans() %>% as.data.frame() %>%
   filter(. > 50)
@@ -180,7 +179,7 @@ CE_data %>% ggplot(aes(x = Feature, y = as.factor(ID))) +
 #ggsave('../figures/lipidomics_plasma_CE_heatmap.pdf', height = 14, width = 9)
 ```
 Abundance of individual plasma TG species split by SFA, MUFA, and PUFA.
-```{r, echo=T, fig.width=4.5, fig.height=1.5, fig.align="center", dpi=300, dev="png"}
+```{r lipid9, echo=T, fig.width=9, fig.height=3, fig.align="center", dpi=300, dev="png"}
 scaled_plasmaData = cbind(plasmaData[,c(1,2)], scale(plasmaData[,-c(1,2)])) # mean 0, sd 1
 
 mean_plasma_TG_data = scaled_plasmaData %>%
@@ -232,7 +231,7 @@ mean_plasma_TG_data %>%
 #ggsave('../figures/lipidomics_plasma_TG_saturation_change.pdf', height = 3, width = 9)
 ```
 Spearman correlation between hepatic and plasma lipids.
-```{r, echo=T, fig.width=2.5, fig.height=1.5, fig.align="center", dpi=300, dev="png"}
+```{r lipid10, echo=T, fig.width=8, fig.height=6, fig.align="center", dpi=300, dev="png"}
 # correlate total lipid classes between liver and plasma
 totalLipidbyClass_liver = liverData %>%
   gather(Feature, Value, 3:ncol(.)) %>%
@@ -304,5 +303,7 @@ df %>%
 ```
 
 ```{r}
-# rmarkdown::render("lipidomics.Rmd", output_format="github_document", output_dir="../markdowns")
+# rmarkdown::render("lipidomics.Rmd")
+# mv lipidomics.Rmd ../markdowns/
+# mv lipidomics_files ../markdowns/
 ```
