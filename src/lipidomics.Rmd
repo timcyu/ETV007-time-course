@@ -13,6 +13,9 @@ library(RColorBrewer)
 require(cowplot)
 theme_set(theme_cowplot())
 source('utils/utils.R')
+```
+
+```{r}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
