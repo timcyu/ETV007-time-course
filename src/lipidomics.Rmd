@@ -304,6 +304,6 @@ df %>%
 
 ```{r}
 # rmarkdown::render("lipidomics.Rmd")
-# mv lipidomics.Rmd ../markdowns/
+# mv lipidomics.md ../markdowns/
 # mv lipidomics_files ../markdowns/
 ```

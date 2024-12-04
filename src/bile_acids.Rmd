@@ -1,9 +1,14 @@
 ---
-title: "Bile Acids analysis"
+title: "Analysis of bile acids data"
 author: "Timothy Yu"
-date: "5/7/2022"
-output: html_document
+output: 
+  github_document:
+    toc: true
+    html_preview: false
+editor_options:
+  chunk_output_type: inline
 ---
+This notebook analyzes the bile acids dataset.
 ```{r, include = FALSE}
 library(tidyverse)
 library(ggplot2)
@@ -14,18 +19,28 @@ source('utils/utils.R')
 ```
 
 ```{r}
-# read in data
+sessionInfo()
+```
+
+```{r}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(dev.args = list(png = list(type = "cairo")))
+```
+
+Read in bile acids dataset.
+```{r}
 BA_totalpool = read.csv('../processed_data/datasets/BA_totalpool.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
 ```
 
-```{r}
-# PCA
+PCA plot of bile acids data.
+```{r, ba1, echo=T, fig.width=6, fig.height=4, fig.align="center", dpi=300, dev="png"}
 autoplot(prcomp(BA_totalpool[-c(1,2)], scale. = TRUE), data = BA_totalpool, colour = 'Treatment', size = 2.5) + scale_color_manual(values = c('black', '#3b9bb3', '#75af4f', '#e39225', '#c13b41'))
-ggsave('../figures/bile_acids_totalpool_pca.pdf', height = 3.5, width = 5)
+
+#ggsave('../figures/bile_acids_totalpool_pca.pdf', height = 3.5, width = 5)
 ```
 
-```{r}
-# bubble plot
+Bubble plot showing relative fold-change in bile acids.
+```{r, ba2, echo=T, fig.width=10, fig.height=5, fig.align="center", dpi=300, dev="png"}
 BA_totalpool_sub = BA_totalpool %>% dplyr::select(
   ID, Treatment,
   `T-a-MCA`, `T-b-MCA`, `T-o-MCA`, `TCDCA`, `TCA`, `TDCA`, `TLCA`, `b-MCA`, `CA`
@@ -34,8 +49,9 @@ BA_totalpool_sub = BA_totalpool %>% dplyr::select(
 bubdata = makeBubbleData(BA_totalpool_sub)
 bubp = getBubbleSignificance(bubdata)
 makeBubblePlot(bubp, abundance=FALSE)
-ggsave('../figures/bile_acids_bubble_plot.pdf', height = 4, width = 13)
-write.csv(bubp, '../../ba_bubble_significance.csv')
+
+#ggsave('../figures/bile_acids_bubble_plot.pdf', height = 4, width = 13)
+#write.csv(bubp, '../../ba_bubble_significance.csv')
 ```
 
 ```{r}
@@ -50,8 +66,12 @@ percent_BA = BA_totalpool %>%
   group_by(Treatment) %>%
   mutate(total_abundance = sum(median_abundance)) %>%
   mutate(percent_bile_acid = (median_abundance / total_abundance) * 100)
-  
 ```
 
+```{r}
+# rmarkdown::render("bile_acids.Rmd")
+# mv bile_acids.md ../markdowns/
+# mv bile_acids_files ../markdowns/
+```
 
 
