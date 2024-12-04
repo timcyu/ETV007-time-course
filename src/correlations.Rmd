@@ -455,7 +455,6 @@ rm(total_ba_x_microbiome, microbiome_mat, total_ba_mat)
 ```{r}
 # rmarkdown::render("correlations.Rmd")
 # mv correlations.md ../markdowns/
-# mv correlations_files ../markdowns/
 ```
 
 
