@@ -4,6 +4,7 @@ Timothy Yu
 
 ``` r
 knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(dev.args = list(png = list(type = "cairo")))
 ```
 
 Liver lipidomics
