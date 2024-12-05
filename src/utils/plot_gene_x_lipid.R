@@ -43,14 +43,14 @@ other_species = read.csv(
 lipid_list = append(TAG$lipid, other_species$lipid)
 
 # remove any correlations that don't contain lipids in `lipid_list`
-top50gene_x_liver_lipid = read.csv(
-  '../../processed_data/correlations/top50gene_x_liver_lipid.csv'
+topgene_x_liver_lipid = read.csv(
+  '../../processed_data/correlations/top150gene_x_liver_lipid.csv'
 ) %>% filter(
   Liver_lipid %in% lipid_list
 ) %>% drop_na()
 
 # create gene x liver lipid matrix to plot
-top50gene_x_liver_lipid_mat = top50gene_x_liver_lipid %>% dplyr::select(-adj_pval) %>%
+topgene_x_liver_lipid_mat = topgene_x_liver_lipid %>% dplyr::select(-adj_pval) %>%
   pivot_wider(names_from=Liver_lipid, values_from=bicor) %>%
   tibble::column_to_rownames(var="Gene") %>% as.matrix()
 
@@ -58,7 +58,7 @@ top50gene_x_liver_lipid_mat = top50gene_x_liver_lipid %>% dplyr::select(-adj_pva
 colors <- rev(colorRampPalette(brewer.pal(9, "RdBu"))(100))
 
 lipidclasses = (data.frame(
-  "lipid" = colnames(top50gene_x_liver_lipid_mat)
+  "lipid" = colnames(topgene_x_liver_lipid_mat)
 ) %>% separate(
   col="lipid", 
   into=c("class"), 
@@ -87,7 +87,7 @@ column_ha = HeatmapAnnotation(
 )
 set.seed(123)
 ht = Heatmap(
-  top50gene_x_liver_lipid_mat, 
+  topgene_x_liver_lipid_mat, 
   top_annotation=column_ha,
   cluster_rows=TRUE,
   cluster_columns=TRUE,
@@ -100,108 +100,6 @@ ht = Heatmap(
 )
 
 # overall heatmap
-pdf('../../figures/gene_heatmaps/gene_x_all_normliverweight.pdf', height=9, width=18)
+pdf('../../figures/gene_heatmaps/gene_x_liver_lipid_normliverweight.pdf', height=21, width=18)
 ht = draw(ht)
-dev.off()
-
-# only plot DG
-DG_ht = Heatmap(
-  top50gene_x_liver_lipid_mat[,which(lipidclasses == 'DG')], 
-  row_order=rownames(top50gene_x_liver_lipid_mat)[row_order(ht)],
-  cluster_columns=TRUE,
-  cluster_rows=FALSE,
-  show_row_dend=FALSE,
-  show_column_dend=FALSE, 
-  show_column_names=TRUE,
-  border=TRUE,
-  col=colors,
-  column_title ='DG'
-)
-pdf('../../figures/gene_heatmaps/gene_x_DG.pdf', height=9, width=13)
-DG_ht
-dev.off()
-
-# only plot Cer
-Cer_ht = Heatmap(
-  top50gene_x_liver_lipid_mat[,which(lipidclasses == 'Cer')], 
-  row_order=rownames(top50gene_x_liver_lipid_mat)[row_order(ht)],
-  cluster_columns=TRUE,
-  cluster_rows=FALSE,
-  show_row_dend=FALSE,
-  show_column_dend=FALSE, 
-  show_column_names=TRUE,
-  border=TRUE,
-  col=colors,
-  column_title ='Cer'
-)
-pdf('../../figures/gene_heatmaps/gene_x_Cer.pdf', height=9, width=7)
-Cer_ht
-dev.off()
-
-# only plot FA
-FA_ht = Heatmap(
-  top50gene_x_liver_lipid_mat[,which(lipidclasses == 'FA')], 
-  row_order=rownames(top50gene_x_liver_lipid_mat)[row_order(ht)],
-  cluster_columns=TRUE,
-  cluster_rows=FALSE,
-  show_row_dend=FALSE,
-  show_column_dend=FALSE, 
-  show_column_names=TRUE,
-  border=TRUE,
-  col=colors,
-  column_title ='FA'
-)
-pdf('../../figures/gene_heatmaps/gene_x_FA.pdf', height=9, width=7)
-FA_ht
-dev.off()
-
-# only plot LPC
-LPC_ht = Heatmap(
-  top50gene_x_liver_lipid_mat[,which(lipidclasses == 'LPC')], 
-  row_order=rownames(top50gene_x_liver_lipid_mat)[row_order(ht)],
-  cluster_columns=TRUE,
-  cluster_rows=FALSE,
-  show_row_dend=FALSE,
-  show_column_dend=FALSE, 
-  show_column_names=TRUE,
-  border=TRUE,
-  col=colors,
-  column_title ='LPC'
-)
-pdf('../../figures/gene_heatmaps/gene_x_LPC.pdf', height=9, width=7)
-LPC_ht
-dev.off()
-
-# only plot PE
-PE_ht = Heatmap(
-  top50gene_x_liver_lipid_mat[,which(lipidclasses == 'PE')], 
-  row_order=rownames(top50gene_x_liver_lipid_mat)[row_order(ht)],
-  cluster_columns=TRUE,
-  cluster_rows=FALSE,
-  show_row_dend=FALSE,
-  show_column_dend=FALSE, 
-  show_column_names=TRUE,
-  border=TRUE,
-  col=colors,
-  column_title ='PE'
-)
-pdf('../../figures/gene_heatmaps/gene_x_PE.pdf', height=9, width=14)
-PE_ht
-dev.off()
-
-# only plot PC
-PC_ht = Heatmap(
-  top50gene_x_liver_lipid_mat[,which(lipidclasses == 'PC')], 
-  row_order=rownames(top50gene_x_liver_lipid_mat)[row_order(ht)],
-  cluster_columns=TRUE,
-  cluster_rows=FALSE,
-  show_row_dend=FALSE,
-  show_column_dend=FALSE, 
-  show_column_names=TRUE,
-  border=TRUE,
-  col=colors,
-  column_title ='PC'
-)
-pdf('../../figures/gene_heatmaps/gene_x_PC.pdf', height=9, width=16)
-PC_ht
 dev.off()

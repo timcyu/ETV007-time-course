@@ -30,7 +30,7 @@ knitr::opts_chunk$set(dev.args = list(png = list(type = "cairo")))
 Load in datasets.
 ```{r}
 # load in liver lipid data
-liver_lipids = read.csv('../processed_data/datasets/Lipidomics_liver.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
+liver_lipids = read.csv('../processed_data/datasets/Lipidomics_liver_normliverweight.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
 
 # load in plasma lipid data
 plasma_lipids = read.csv('../processed_data/datasets/Lipidomics_plasma.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
@@ -103,30 +103,30 @@ gene_x_liver_lipid = createCorrTable(corr, 'Gene', 'Liver_lipid') %>%
   filter(adj_pval < 0.05)
 write.csv(gene_x_liver_lipid, '../processed_data/correlations/gene_x_liver_lipid_adjpval0.05.csv', row.names = FALSE)
 
-top50 = (gene_x_liver_lipid %>% 
+top = (gene_x_liver_lipid %>% 
   arrange(adj_pval) %>% 
   dplyr::select(Gene) %>% 
   distinct() %>% 
-  head(50))$Gene
+  head(150))$Gene
 ```
 
-Correlate liver lipids -> top 50 RNAseq
+Correlate liver lipids -> top 150 RNAseq
 ```{r, warning=FALSE}
-top50_RNAseq_mat = RNAseq_mat %>% dplyr::select(ID, Treatment, all_of(top50))
+top_RNAseq_mat = RNAseq_mat %>% dplyr::select(ID, Treatment, all_of(top))
 
 # check that order of ID's are the same in both data sets
-assertthat::are_equal(liver_lipids_mat$ID, top50_RNAseq_mat$ID)
+assertthat::are_equal(liver_lipids_mat$ID, top_RNAseq_mat$ID)
 
 # correlate (NA's and missing values exist, so warnings expected)
-corr = bicorAndPvalue((top50_RNAseq_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
+corr = bicorAndPvalue((top_RNAseq_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
                       (liver_lipids_mat %>% dplyr::select(-c('ID', 'Treatment')))
        )
 ```
 
 ```{r}
-top50gene_x_liver_lipid = createCorrTable(corr, 'Gene', 'Liver_lipid')
-write.csv(top50gene_x_liver_lipid, '../processed_data/correlations/top50gene_x_liver_lipid.csv', row.names = FALSE)
-rm(gene_x_liver_lipid, liver_lipids_mat, RNAseq_mat, top50_RNAseq_mat, top50gene_x_liver_lipid)
+topgene_x_liver_lipid = createCorrTable(corr, 'Gene', 'Liver_lipid')
+write.csv(topgene_x_liver_lipid, '../processed_data/correlations/top150gene_x_liver_lipid.csv', row.names = FALSE)
+rm(gene_x_liver_lipid, liver_lipids_mat, RNAseq_mat, top_RNAseq_mat, topgene_x_liver_lipid)
 ```
 
 Correlate liver lipids -> intestinal BA
