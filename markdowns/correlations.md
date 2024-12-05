@@ -20,70 +20,68 @@ sessionInfo()
     ## [1] en_US.UTF-8/en_US.UTF-8/en_US.UTF-8/C/en_US.UTF-8/en_US.UTF-8
     ## 
     ## attached base packages:
-    ## [1] parallel  stats4    stats     graphics  grDevices utils     datasets  methods   base     
+    ##  [1] grid      parallel  stats4    stats     graphics  grDevices utils     datasets 
+    ##  [9] methods   base     
     ## 
     ## other attached packages:
-    ##  [1] EnhancedVolcano_1.6.0       ggrepel_0.9.1               apeglm_1.10.0              
-    ##  [4] GenomicFeatures_1.40.1      AnnotationDbi_1.50.3        DESeq2_1.28.1              
-    ##  [7] SummarizedExperiment_1.18.2 DelayedArray_0.14.1         matrixStats_0.61.0         
-    ## [10] Biobase_2.48.0              GenomicRanges_1.40.0        GenomeInfoDb_1.24.2        
-    ## [13] IRanges_2.22.2              S4Vectors_0.26.1            BiocGenerics_0.34.0        
-    ## [16] WGCNA_1.70-3                fastcluster_1.2.3           dynamicTreeCut_1.63-1      
-    ## [19] rmarkdown_2.11              cowplot_1.1.1               RColorBrewer_1.1-3         
-    ## [22] DescTools_0.99.44           viridis_0.6.2               viridisLite_0.4.0          
-    ## [25] bnstruct_1.0.11             igraph_1.2.9                bitops_1.0-7               
-    ## [28] ggfortify_0.4.13            forcats_0.5.1               stringr_1.4.0              
-    ## [31] dplyr_1.0.9                 purrr_0.3.4                 readr_2.1.1                
-    ## [34] tidyr_1.2.0                 tibble_3.1.8                ggplot2_3.3.6              
-    ## [37] tidyverse_1.3.1            
+    ##  [1] ComplexHeatmap_2.15.4       WGCNA_1.70-3                fastcluster_1.2.3          
+    ##  [4] dynamicTreeCut_1.63-1       forcats_0.5.1               stringr_1.4.0              
+    ##  [7] purrr_0.3.4                 readr_2.1.1                 tibble_3.1.8               
+    ## [10] tidyverse_1.3.1             EnhancedVolcano_1.6.0       ggrepel_0.9.1              
+    ## [13] apeglm_1.10.0               GenomicFeatures_1.40.1      AnnotationDbi_1.50.3       
+    ## [16] DESeq2_1.28.1               SummarizedExperiment_1.18.2 DelayedArray_0.14.1        
+    ## [19] matrixStats_0.61.0          Biobase_2.48.0              GenomicRanges_1.40.0       
+    ## [22] GenomeInfoDb_1.24.2         IRanges_2.22.2              S4Vectors_0.26.1           
+    ## [25] BiocGenerics_0.34.0         RColorBrewer_1.1-3          viridis_0.6.2              
+    ## [28] viridisLite_0.4.0           cowplot_1.1.1               ggplot2_3.3.6              
+    ## [31] tidyr_1.2.0                 dplyr_1.0.9                
     ## 
     ## loaded via a namespace (and not attached):
-    ##   [1] utf8_1.2.2               tidyselect_1.1.2         RSQLite_2.2.8           
-    ##   [4] htmlwidgets_1.5.4        grid_4.0.2               BiocParallel_1.22.0     
-    ##   [7] munsell_0.5.0            codetools_0.2-18         ragg_1.2.2              
-    ##  [10] preprocessCore_1.50.0    withr_2.5.0              colorspace_2.0-3        
-    ##  [13] highr_0.9                knitr_1.36               rstudioapi_0.13         
-    ##  [16] labeling_0.4.2           bbmle_1.0.24             GenomeInfoDbData_1.2.3  
-    ##  [19] mixsqp_0.3-43            bit64_4.0.5              farver_2.1.1            
-    ##  [22] coda_0.19-4              vctrs_0.4.1              generics_0.1.3          
-    ##  [25] xfun_0.28                BiocFileCache_1.12.1     R6_2.5.1                
-    ##  [28] doParallel_1.0.16        invgamma_1.1             locfit_1.5-9.4          
-    ##  [31] cachem_1.0.6             assertthat_0.2.1         scales_1.2.0            
-    ##  [34] nnet_7.3-16              rootSolve_1.8.2.3        gtable_0.3.0            
-    ##  [37] lmom_2.8                 rlang_1.0.4              genefilter_1.70.0       
-    ##  [40] systemfonts_1.0.4        splines_4.0.2            rtracklayer_1.48.0      
-    ##  [43] impute_1.62.0            broom_0.7.10             checkmate_2.0.0         
-    ##  [46] yaml_2.2.1               reshape2_1.4.4           modelr_0.1.8            
-    ##  [49] backports_1.4.0          Hmisc_4.6-0              tools_4.0.2             
-    ##  [52] ellipsis_0.3.2           proxy_0.4-26             Rcpp_1.0.7              
-    ##  [55] plyr_1.8.6               base64enc_0.1-3          progress_1.2.2          
-    ##  [58] zlibbioc_1.34.0          RCurl_1.98-1.5           prettyunits_1.1.1       
-    ##  [61] rpart_4.1-15             openssl_1.4.5            ashr_2.2-47             
-    ##  [64] haven_2.4.3              cluster_2.1.2            fs_1.5.2                
-    ##  [67] magrittr_2.0.3           data.table_1.14.2        reprex_2.0.1            
-    ##  [70] truncnorm_1.0-8          mvtnorm_1.1-3            SQUAREM_2021.1          
-    ##  [73] hms_1.1.1                evaluate_0.14            xtable_1.8-4            
-    ##  [76] XML_3.99-0.8             emdbook_1.3.12           jpeg_0.1-9              
-    ##  [79] readxl_1.3.1             gridExtra_2.3            compiler_4.0.2          
-    ##  [82] biomaRt_2.44.4           bdsmatrix_1.3-4          crayon_1.4.2            
-    ##  [85] htmltools_0.5.2          mgcv_1.8-38              tzdb_0.2.0              
-    ##  [88] Formula_1.2-4            geneplotter_1.66.0       expm_0.999-6            
-    ##  [91] Exact_3.1                lubridate_1.8.0          DBI_1.1.1               
-    ##  [94] dbplyr_2.1.1             MASS_7.3-54              rappdirs_0.3.3          
-    ##  [97] boot_1.3-28              Matrix_1.3-4             cli_3.3.0               
-    ## [100] pkgconfig_2.0.3          GenomicAlignments_1.24.0 numDeriv_2016.8-1.1     
-    ## [103] foreign_0.8-81           xml2_1.3.3               foreach_1.5.1           
-    ## [106] annotate_1.66.0          XVector_0.28.0           rvest_1.0.2             
-    ## [109] digest_0.6.29            Biostrings_2.56.0        cellranger_1.1.0        
-    ## [112] htmlTable_2.3.0          gld_2.6.3                curl_4.3.2              
-    ## [115] Rsamtools_2.4.0          lifecycle_1.0.1          nlme_3.1-153            
-    ## [118] jsonlite_1.7.2           askpass_1.1              fansi_1.0.3             
-    ## [121] pillar_1.8.0             lattice_0.20-45          fastmap_1.1.0           
-    ## [124] httr_1.4.2               survival_3.3-1           GO.db_3.11.4            
-    ## [127] glue_1.6.2               png_0.1-7                iterators_1.0.13        
-    ## [130] bit_4.0.4                class_7.3-19             stringi_1.7.6           
-    ## [133] blob_1.2.2               textshaping_0.3.6        latticeExtra_0.6-29     
-    ## [136] memoise_2.0.1            irlba_2.3.3              e1071_1.7-9
+    ##   [1] circlize_0.4.15          readxl_1.3.1             backports_1.4.0         
+    ##   [4] Hmisc_4.6-0              BiocFileCache_1.12.1     systemfonts_1.0.4       
+    ##   [7] plyr_1.8.6               splines_4.0.2            BiocParallel_1.22.0     
+    ##  [10] digest_0.6.29            invgamma_1.1             foreach_1.5.1           
+    ##  [13] htmltools_0.5.2          GO.db_3.11.4             SQUAREM_2021.1          
+    ##  [16] fansi_1.0.3              checkmate_2.0.0          magrittr_2.0.3          
+    ##  [19] memoise_2.0.1            cluster_2.1.2            doParallel_1.0.16       
+    ##  [22] tzdb_0.2.0               Biostrings_2.56.0        annotate_1.66.0         
+    ##  [25] modelr_0.1.8             askpass_1.1              bdsmatrix_1.3-4         
+    ##  [28] prettyunits_1.1.1        jpeg_0.1-9               colorspace_2.0-3        
+    ##  [31] blob_1.2.2               rvest_1.0.2              rappdirs_0.3.3          
+    ##  [34] textshaping_0.3.6        haven_2.4.3              xfun_0.28               
+    ##  [37] crayon_1.4.2             RCurl_1.98-1.5           jsonlite_1.7.2          
+    ##  [40] genefilter_1.70.0        impute_1.62.0            survival_3.3-1          
+    ##  [43] iterators_1.0.13         glue_1.6.2               gtable_0.3.0            
+    ##  [46] zlibbioc_1.34.0          XVector_0.28.0           GetoptLong_1.0.5        
+    ##  [49] shape_1.4.6              scales_1.2.0             mvtnorm_1.1-3           
+    ##  [52] DBI_1.1.1                Rcpp_1.0.7               htmlTable_2.3.0         
+    ##  [55] xtable_1.8-4             progress_1.2.2           emdbook_1.3.12          
+    ##  [58] clue_0.3-60              foreign_0.8-81           bit_4.0.4               
+    ##  [61] preprocessCore_1.50.0    Formula_1.2-4            truncnorm_1.0-8         
+    ##  [64] htmlwidgets_1.5.4        httr_1.4.2               ellipsis_0.3.2          
+    ##  [67] pkgconfig_2.0.3          XML_3.99-0.8             farver_2.1.1            
+    ##  [70] nnet_7.3-16              dbplyr_2.1.1             locfit_1.5-9.4          
+    ##  [73] utf8_1.2.2               tidyselect_1.1.2         labeling_0.4.2          
+    ##  [76] rlang_1.0.4              reshape2_1.4.4           munsell_0.5.0           
+    ##  [79] cellranger_1.1.0         tools_4.0.2              cachem_1.0.6            
+    ##  [82] cli_3.3.0                generics_0.1.3           RSQLite_2.2.8           
+    ##  [85] broom_0.7.10             evaluate_0.14            fastmap_1.1.0           
+    ##  [88] yaml_2.2.1               ragg_1.2.2               knitr_1.36              
+    ##  [91] bit64_4.0.5              fs_1.5.2                 xml2_1.3.3              
+    ##  [94] biomaRt_2.44.4           compiler_4.0.2           rstudioapi_0.13         
+    ##  [97] png_0.1-7                curl_4.3.2               reprex_2.0.1            
+    ## [100] geneplotter_1.66.0       stringi_1.7.6            highr_0.9               
+    ## [103] lattice_0.20-45          Matrix_1.3-4             vctrs_0.4.1             
+    ## [106] pillar_1.8.0             lifecycle_1.0.1          GlobalOptions_0.1.2     
+    ## [109] data.table_1.14.2        bitops_1.0-7             irlba_2.3.3             
+    ## [112] rtracklayer_1.48.0       latticeExtra_0.6-29      R6_2.5.1                
+    ## [115] gridExtra_2.3            codetools_0.2-18         MASS_7.3-54             
+    ## [118] assertthat_0.2.1         rjson_0.2.21             openssl_1.4.5           
+    ## [121] withr_2.5.0              GenomicAlignments_1.24.0 Rsamtools_2.4.0         
+    ## [124] GenomeInfoDbData_1.2.3   hms_1.1.1                rpart_4.1-15            
+    ## [127] coda_0.19-4              rmarkdown_2.11           ashr_2.2-47             
+    ## [130] mixsqp_0.3-43            bbmle_1.0.24             base64enc_0.1-3         
+    ## [133] numDeriv_2016.8-1.1      lubridate_1.8.0
 
 ``` r
 knitr::opts_chunk$set(echo = TRUE)
@@ -94,7 +92,7 @@ Load in datasets.
 
 ``` r
 # load in liver lipid data
-liver_lipids = read.csv('../processed_data/datasets/Lipidomics_liver.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
+liver_lipids = read.csv('../processed_data/datasets/Lipidomics_liver_normliverweight.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
 
 # load in plasma lipid data
 plasma_lipids = read.csv('../processed_data/datasets/Lipidomics_plasma.csv', header = TRUE, stringsAsFactors = FALSE, check.names = FALSE)
@@ -172,35 +170,35 @@ gene_x_liver_lipid = createCorrTable(corr, 'Gene', 'Liver_lipid') %>%
   filter(adj_pval < 0.05)
 write.csv(gene_x_liver_lipid, '../processed_data/correlations/gene_x_liver_lipid_adjpval0.05.csv', row.names = FALSE)
 
-top50 = (gene_x_liver_lipid %>% 
+top = (gene_x_liver_lipid %>% 
   arrange(adj_pval) %>% 
   dplyr::select(Gene) %>% 
   distinct() %>% 
-  head(50))$Gene
+  head(150))$Gene
 ```
 
-Correlate liver lipids -> top 50 RNAseq
+Correlate liver lipids -> top 150 RNAseq
 
 ``` r
-top50_RNAseq_mat = RNAseq_mat %>% dplyr::select(ID, Treatment, all_of(top50))
+top_RNAseq_mat = RNAseq_mat %>% dplyr::select(ID, Treatment, all_of(top))
 
 # check that order of ID's are the same in both data sets
-assertthat::are_equal(liver_lipids_mat$ID, top50_RNAseq_mat$ID)
+assertthat::are_equal(liver_lipids_mat$ID, top_RNAseq_mat$ID)
 ```
 
     ## [1] TRUE
 
 ``` r
 # correlate (NA's and missing values exist, so warnings expected)
-corr = bicorAndPvalue((top50_RNAseq_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
+corr = bicorAndPvalue((top_RNAseq_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
                       (liver_lipids_mat %>% dplyr::select(-c('ID', 'Treatment')))
        )
 ```
 
 ``` r
-top50gene_x_liver_lipid = createCorrTable(corr, 'Gene', 'Liver_lipid')
-write.csv(top50gene_x_liver_lipid, '../processed_data/correlations/top50gene_x_liver_lipid.csv', row.names = FALSE)
-rm(gene_x_liver_lipid, liver_lipids_mat, RNAseq_mat, top50_RNAseq_mat, top50gene_x_liver_lipid)
+topgene_x_liver_lipid = createCorrTable(corr, 'Gene', 'Liver_lipid')
+write.csv(topgene_x_liver_lipid, '../processed_data/correlations/top150gene_x_liver_lipid.csv', row.names = FALSE)
+rm(gene_x_liver_lipid, liver_lipids_mat, RNAseq_mat, top_RNAseq_mat, topgene_x_liver_lipid)
 ```
 
 Correlate liver lipids -> intestinal BA
@@ -599,5 +597,4 @@ rm(total_ba_x_microbiome, microbiome_mat, total_ba_mat)
 ``` r
 # rmarkdown::render("correlations.Rmd")
 # mv correlations.md ../markdowns/
-# mv correlations_files ../markdowns/
 ```
