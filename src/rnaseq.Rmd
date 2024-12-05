@@ -110,25 +110,28 @@ for(i in c(0, 2, 4, 6)) {
       
       # create custom key-value pairs for 'up-regulated', 'down-regulated', 'non-significant'
       keyvals <- ifelse(
-        abs(res$log2FoldChange) > 0.5 & res$padj < 0.05, 'red', ifelse(
-          res$padj < 0.05, 'blue', 'gray40'
+        abs(res$log2FoldChange) > 0.5 & res$padj < 0.05, '#FF5A3F', ifelse(
+          res$padj < 0.05, '#2A72FF', 'gray40'
         )
       )
       keyvals[is.na(keyvals)] <- 'gray40'
-      names(keyvals)[keyvals == 'blue'] <- 'padj < 0.05'
-      names(keyvals)[keyvals == 'red'] <- 'padj < 0.05 and log2FC > 0.5'
+      names(keyvals)[keyvals == '#2A72FF'] <- 'padj < 0.05'
+      names(keyvals)[keyvals == '#FF5A3F'] <- 'padj < 0.05 and log2FC > 0.5'
       names(keyvals)[keyvals == 'gray40'] <- 'NS'
+      
+      range = max(abs(min(res$log2FoldChange)), abs(max(res$log2FoldChange))) + 1
       
       EnhancedVolcano(res, 
                 lab = annotation$Associated.Gene.Name, 
                 labSize = 6,
                 x = 'log2FoldChange', 
-                y = 'padj', 
+                y = 'padj',
+                xlim = c(-range, range),
                 title = paste(i, 'vs.', j), 
                 pCutoff = 0.05, 
                 FCcutoff = 0.5, 
                 colCustom = keyvals,
-                colAlpha = 0.9, 
+                colAlpha = 0.75, 
                 pointSize = 3.0)
       ggsave(paste('../figures/volcano/', i, 'vs', j, '.pdf', sep=''), height = 7.5, width = 6.2)
     }

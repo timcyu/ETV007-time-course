@@ -28,62 +28,44 @@ sessionInfo()
     ##  [7] SummarizedExperiment_1.18.2 DelayedArray_0.14.1         matrixStats_0.61.0         
     ## [10] Biobase_2.48.0              GenomicRanges_1.40.0        GenomeInfoDb_1.24.2        
     ## [13] IRanges_2.22.2              S4Vectors_0.26.1            BiocGenerics_0.34.0        
-    ## [16] WGCNA_1.70-3                fastcluster_1.2.3           dynamicTreeCut_1.63-1      
-    ## [19] rmarkdown_2.11              cowplot_1.1.1               RColorBrewer_1.1-3         
-    ## [22] DescTools_0.99.44           viridis_0.6.2               viridisLite_0.4.0          
-    ## [25] bnstruct_1.0.11             igraph_1.2.9                bitops_1.0-7               
-    ## [28] ggfortify_0.4.13            forcats_0.5.1               stringr_1.4.0              
-    ## [31] dplyr_1.0.9                 purrr_0.3.4                 readr_2.1.1                
-    ## [34] tidyr_1.2.0                 tibble_3.1.8                ggplot2_3.3.6              
-    ## [37] tidyverse_1.3.1            
+    ## [16] RColorBrewer_1.1-3          viridis_0.6.2               viridisLite_0.4.0          
+    ## [19] cowplot_1.1.1               ggplot2_3.3.6               tidyr_1.2.0                
+    ## [22] dplyr_1.0.9                
     ## 
     ## loaded via a namespace (and not attached):
-    ##   [1] utf8_1.2.2               tidyselect_1.1.2         RSQLite_2.2.8           
-    ##   [4] htmlwidgets_1.5.4        grid_4.0.2               BiocParallel_1.22.0     
-    ##   [7] munsell_0.5.0            codetools_0.2-18         ragg_1.2.2              
-    ##  [10] preprocessCore_1.50.0    withr_2.5.0              colorspace_2.0-3        
-    ##  [13] highr_0.9                knitr_1.36               rstudioapi_0.13         
-    ##  [16] labeling_0.4.2           bbmle_1.0.24             GenomeInfoDbData_1.2.3  
-    ##  [19] mixsqp_0.3-43            bit64_4.0.5              farver_2.1.1            
-    ##  [22] coda_0.19-4              vctrs_0.4.1              generics_0.1.3          
-    ##  [25] xfun_0.28                BiocFileCache_1.12.1     R6_2.5.1                
-    ##  [28] doParallel_1.0.16        invgamma_1.1             locfit_1.5-9.4          
-    ##  [31] cachem_1.0.6             assertthat_0.2.1         scales_1.2.0            
-    ##  [34] nnet_7.3-16              rootSolve_1.8.2.3        gtable_0.3.0            
-    ##  [37] lmom_2.8                 rlang_1.0.4              genefilter_1.70.0       
-    ##  [40] systemfonts_1.0.4        splines_4.0.2            rtracklayer_1.48.0      
-    ##  [43] impute_1.62.0            broom_0.7.10             checkmate_2.0.0         
-    ##  [46] yaml_2.2.1               reshape2_1.4.4           modelr_0.1.8            
-    ##  [49] backports_1.4.0          Hmisc_4.6-0              tools_4.0.2             
-    ##  [52] ellipsis_0.3.2           proxy_0.4-26             Rcpp_1.0.7              
-    ##  [55] plyr_1.8.6               base64enc_0.1-3          progress_1.2.2          
-    ##  [58] zlibbioc_1.34.0          RCurl_1.98-1.5           prettyunits_1.1.1       
-    ##  [61] rpart_4.1-15             openssl_1.4.5            ashr_2.2-47             
-    ##  [64] haven_2.4.3              cluster_2.1.2            fs_1.5.2                
-    ##  [67] magrittr_2.0.3           data.table_1.14.2        reprex_2.0.1            
-    ##  [70] truncnorm_1.0-8          mvtnorm_1.1-3            SQUAREM_2021.1          
-    ##  [73] hms_1.1.1                evaluate_0.14            xtable_1.8-4            
-    ##  [76] XML_3.99-0.8             emdbook_1.3.12           jpeg_0.1-9              
-    ##  [79] readxl_1.3.1             gridExtra_2.3            compiler_4.0.2          
-    ##  [82] biomaRt_2.44.4           bdsmatrix_1.3-4          crayon_1.4.2            
-    ##  [85] htmltools_0.5.2          mgcv_1.8-38              tzdb_0.2.0              
-    ##  [88] Formula_1.2-4            geneplotter_1.66.0       expm_0.999-6            
-    ##  [91] Exact_3.1                lubridate_1.8.0          DBI_1.1.1               
-    ##  [94] dbplyr_2.1.1             MASS_7.3-54              rappdirs_0.3.3          
-    ##  [97] boot_1.3-28              Matrix_1.3-4             cli_3.3.0               
-    ## [100] pkgconfig_2.0.3          GenomicAlignments_1.24.0 numDeriv_2016.8-1.1     
-    ## [103] foreign_0.8-81           xml2_1.3.3               foreach_1.5.1           
-    ## [106] annotate_1.66.0          XVector_0.28.0           rvest_1.0.2             
-    ## [109] digest_0.6.29            Biostrings_2.56.0        cellranger_1.1.0        
-    ## [112] htmlTable_2.3.0          gld_2.6.3                curl_4.3.2              
-    ## [115] Rsamtools_2.4.0          lifecycle_1.0.1          nlme_3.1-153            
-    ## [118] jsonlite_1.7.2           askpass_1.1              fansi_1.0.3             
-    ## [121] pillar_1.8.0             lattice_0.20-45          fastmap_1.1.0           
-    ## [124] httr_1.4.2               survival_3.3-1           GO.db_3.11.4            
-    ## [127] glue_1.6.2               png_0.1-7                iterators_1.0.13        
-    ## [130] bit_4.0.4                class_7.3-19             stringi_1.7.6           
-    ## [133] blob_1.2.2               textshaping_0.3.6        latticeExtra_0.6-29     
-    ## [136] memoise_2.0.1            irlba_2.3.3              e1071_1.7-9
+    ##  [1] colorspace_2.0-3         ellipsis_0.3.2           XVector_0.28.0          
+    ##  [4] rstudioapi_0.13          farver_2.1.1             bit64_4.0.5             
+    ##  [7] fansi_1.0.3              mvtnorm_1.1-3            xml2_1.3.3              
+    ## [10] splines_4.0.2            cachem_1.0.6             geneplotter_1.66.0      
+    ## [13] knitr_1.36               Rsamtools_2.4.0          annotate_1.66.0         
+    ## [16] ashr_2.2-47              dbplyr_2.1.1             compiler_4.0.2          
+    ## [19] httr_1.4.2               assertthat_0.2.1         Matrix_1.3-4            
+    ## [22] fastmap_1.1.0            cli_3.3.0                htmltools_0.5.2         
+    ## [25] prettyunits_1.1.1        tools_4.0.2              coda_0.19-4             
+    ## [28] gtable_0.3.0             glue_1.6.2               GenomeInfoDbData_1.2.3  
+    ## [31] reshape2_1.4.4           rappdirs_0.3.3           Rcpp_1.0.7              
+    ## [34] bbmle_1.0.24             vctrs_0.4.1              Biostrings_2.56.0       
+    ## [37] rtracklayer_1.48.0       xfun_0.28                stringr_1.4.0           
+    ## [40] lifecycle_1.0.1          irlba_2.3.3              XML_3.99-0.8            
+    ## [43] zlibbioc_1.34.0          MASS_7.3-54              scales_1.2.0            
+    ## [46] ragg_1.2.2               hms_1.1.1                yaml_2.2.1              
+    ## [49] curl_4.3.2               memoise_2.0.1            gridExtra_2.3           
+    ## [52] emdbook_1.3.12           biomaRt_2.44.4           bdsmatrix_1.3-4         
+    ## [55] stringi_1.7.6            RSQLite_2.2.8            SQUAREM_2021.1          
+    ## [58] genefilter_1.70.0        BiocParallel_1.22.0      truncnorm_1.0-8         
+    ## [61] systemfonts_1.0.4        rlang_1.0.4              pkgconfig_2.0.3         
+    ## [64] bitops_1.0-7             evaluate_0.14            lattice_0.20-45         
+    ## [67] invgamma_1.1             purrr_0.3.4              GenomicAlignments_1.24.0
+    ## [70] labeling_0.4.2           bit_4.0.4                tidyselect_1.1.2        
+    ## [73] plyr_1.8.6               magrittr_2.0.3           R6_2.5.1                
+    ## [76] generics_0.1.3           DBI_1.1.1                pillar_1.8.0            
+    ## [79] withr_2.5.0              survival_3.3-1           RCurl_1.98-1.5          
+    ## [82] mixsqp_0.3-43            tibble_3.1.8             crayon_1.4.2            
+    ## [85] utf8_1.2.2               BiocFileCache_1.12.1     rmarkdown_2.11          
+    ## [88] progress_1.2.2           locfit_1.5-9.4           grid_4.0.2              
+    ## [91] blob_1.2.2               digest_0.6.29            xtable_1.8-4            
+    ## [94] numDeriv_2016.8-1.1      textshaping_0.3.6        openssl_1.4.5           
+    ## [97] munsell_0.5.0            askpass_1.1
 
 ``` r
 knitr::opts_chunk$set(echo = TRUE)
@@ -186,7 +168,7 @@ colnames(raw) <- c("Gene","Sample","Expression")
 ggplot(raw, aes(x=Sample, y=Expression)) + geom_violin() + theme(axis.text.x = element_text(angle=45, hjust=1))
 ```
 
-![](rnaseq_files/figure-gfm/unnamed-chunk-18-1.png)<!-- -->
+![](rnaseq_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
 
 ``` r
 matrix <- reshape2::melt(assay(vsd))
@@ -194,7 +176,7 @@ colnames(matrix) <- c("Gene","Sample","Expression")
 ggplot(matrix, aes(x=Sample, y=Expression)) + geom_violin() + theme(axis.text.x = element_text(angle=45, hjust=1))
 ```
 
-![](rnaseq_files/figure-gfm/unnamed-chunk-18-2.png)<!-- -->
+![](rnaseq_files/figure-gfm/unnamed-chunk-23-2.png)<!-- -->
 
 Generate all volcano plots. We use `ashr` to shrink fold-changes.
 Vertical lines indicate \|log2FC\| \> 0.5. Horizontal lines indicate
@@ -212,25 +194,28 @@ for(i in c(0, 2, 4, 6)) {
       
       # create custom key-value pairs for 'up-regulated', 'down-regulated', 'non-significant'
       keyvals <- ifelse(
-        abs(res$log2FoldChange) > 0.5 & res$padj < 0.05, 'red', ifelse(
-          res$padj < 0.05, 'blue', 'gray40'
+        abs(res$log2FoldChange) > 0.5 & res$padj < 0.05, '#FF5A3F', ifelse(
+          res$padj < 0.05, '#2A72FF', 'gray40'
         )
       )
       keyvals[is.na(keyvals)] <- 'gray40'
-      names(keyvals)[keyvals == 'blue'] <- 'padj < 0.05'
-      names(keyvals)[keyvals == 'red'] <- 'padj < 0.05 and log2FC > 0.5'
+      names(keyvals)[keyvals == '#2A72FF'] <- 'padj < 0.05'
+      names(keyvals)[keyvals == '#FF5A3F'] <- 'padj < 0.05 and log2FC > 0.5'
       names(keyvals)[keyvals == 'gray40'] <- 'NS'
+      
+      range = max(abs(min(res$log2FoldChange)), abs(max(res$log2FoldChange))) + 1
       
       EnhancedVolcano(res, 
                 lab = annotation$Associated.Gene.Name, 
                 labSize = 6,
                 x = 'log2FoldChange', 
-                y = 'padj', 
+                y = 'padj',
+                xlim = c(-range, range),
                 title = paste(i, 'vs.', j), 
                 pCutoff = 0.05, 
                 FCcutoff = 0.5, 
                 colCustom = keyvals,
-                colAlpha = 0.9, 
+                colAlpha = 0.75, 
                 pointSize = 3.0)
       ggsave(paste('../figures/volcano/', i, 'vs', j, '.pdf', sep=''), height = 7.5, width = 6.2)
     }
