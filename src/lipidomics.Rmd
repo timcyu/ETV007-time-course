@@ -231,7 +231,7 @@ mean_plasma_TG_data %>%
 #ggsave('../figures/lipidomics_plasma_TG_saturation_change.pdf', height = 3, width = 9)
 ```
 Spearman correlation between hepatic and plasma lipids.
-```{r lipid10, echo=T, fig.width=8, fig.height=6, fig.align="center", dpi=300, dev="png"}
+```{r lipid10, echo=T, fig.width=6, fig.height=8, fig.align="center", dpi=300, dev="png"}
 # correlate total lipid classes between liver and plasma
 totalLipidbyClass_liver = liverData %>%
   gather(Feature, Value, 3:ncol(.)) %>%
@@ -290,16 +290,20 @@ for (lipid1 in lipids_in_common) {
   }
 }
 
+df = df %>% filter(Lipid_liver == Lipid_plasma)
+print(df)
+
 # save dataframe
 write.csv(df, '../processed_data/misc/liver_plasma_lipid_class_pairwise_corr.csv', row.names=FALSE)
 
 df %>%
-  ggplot(aes(x=Lipid_liver, y=Lipid_plasma)) +
-  geom_tile(aes(fill=Spearman_corr), alpha=1, color='black', size=0.1) +
-  scale_fill_gradient2(low = "#0000FF", mid = "#FFFFFF", high ="#FF0000", midpoint=0) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  ggplot(aes(x=Spearman_corr, y=reorder(Lipid_liver, Spearman_corr))) +
+  geom_bar(aes(fill=Lipid_liver), stat="identity", alpha=1, color='black', size=0.1) +
+  scale_fill_manual(values=colors) +
+  labs(x='Spearman correlation', y='Lipid class') +
+  theme(legend.position = 'none')
 
-#ggsave('../figures/lipidomics_plasma_liver_total_corr_heatmap.pdf', height = 4, width = 6)
+#ggsave('../figures/lipidomics_plasma_liver_corr_barplot.pdf', height = 7.5, width = 5.5)
 ```
 
 ```{r}

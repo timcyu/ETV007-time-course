@@ -315,6 +315,69 @@ We then filter out the outputted KEGG pathways by:
 
 Ran on 5/22/23. These are in files `kegg_02_up.csv`, `kegg_02_down.csv`, `kegg_28_up.csv`, and `kegg_28_down.csv`.
 
+```{r}
+kegg_02_up = read.csv('../processed_data/degenes/kegg_02_up.csv', header = TRUE) %>% mutate(
+  significance = negative_log10_of_adjusted_p_value, 
+  direction = "up"
+)
+
+kegg_02_down = read.csv('../processed_data/degenes/kegg_02_down.csv', header = TRUE) %>% mutate(
+  significance = -negative_log10_of_adjusted_p_value, 
+  direction = "down"
+)
+
+kegg_28_up = read.csv('../processed_data/degenes/kegg_28_up.csv', header = TRUE) %>% mutate(
+  significance = negative_log10_of_adjusted_p_value, 
+  direction = "up"
+)
+
+kegg_28_down = read.csv('../processed_data/degenes/kegg_28_down.csv', header = TRUE) %>% mutate(
+  significance = -negative_log10_of_adjusted_p_value, 
+  direction = "down"
+)
+
+kegg_02_df = rbind(kegg_02_up, kegg_02_down) %>%
+  filter(!term_name %in% c('Chemical carcinogenesis - DNA adducts',
+                         'Chemical carcinogenesis - receptor activation',
+                         'Drug metabolism - other enzymes',
+                         'Drug metabolism - cytochrome P450',
+                         'Metabolism of xenobiotics by cytochrome P450',
+                         'Measles',
+                         'Hepatitis C',
+                         'Acute myeloid leukemia',
+                         'Staphylococcus aureus infection',
+                         'Epstein-Barr virus infection',
+                         'Coronavirus disease - COVID-19'))
+
+kegg_28_df = rbind(kegg_28_up, kegg_28_down) %>%
+  filter(!term_name %in% c('Human papillomavirus infection',  'Amoebiasis'))
+
+```
+
+```{r, rna3, echo=T, fig.width=6, fig.height=8, fig.align="center", dpi=300, dev="png"}
+kegg_02_df %>%
+  ggplot(aes(y = significance, x = reorder(term_name, -significance))) +
+  geom_bar(aes(fill = direction), stat='identity', color='black', width = 0.75) +
+  scale_fill_manual(values=c('blue', 'red')) +
+  coord_flip() +
+  ylim(-15,15) +
+  theme(legend.position = 'none') +
+  labs(x="", y='-log10(padj)', title='0 vs. 2 weeks WD')
+#ggsave('../figures/rnaseq_02_kegg.pdf', height = 6, width = 7)
+```
+
+```{r, rna4, echo=T, fig.width=6, fig.height=8, fig.align="center", dpi=300, dev="png"}
+kegg_28_df %>%
+  ggplot(aes(y = significance, x = reorder(term_name, -significance))) +
+  geom_bar(aes(fill = direction), stat='identity', color='black', width = 0.75) +
+  scale_fill_manual(values=c('blue', 'red')) +
+  coord_flip() +
+  ylim(-15,15) +
+  theme(legend.position = 'none') +
+  labs(x="", y='-log10(padj)', title='2 vs. 8 weeks WD')
+#ggsave('../figures/rnaseq_28_kegg.pdf', height = 6, width = 8)
+```
+
 This chunk calculates and writes FPKM measurements for all genes.
 ```{r}
 # no need to run this if already saved dataframe.

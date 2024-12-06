@@ -28,44 +28,50 @@ sessionInfo()
     ##  [7] SummarizedExperiment_1.18.2 DelayedArray_0.14.1         matrixStats_0.61.0         
     ## [10] Biobase_2.48.0              GenomicRanges_1.40.0        GenomeInfoDb_1.24.2        
     ## [13] IRanges_2.22.2              S4Vectors_0.26.1            BiocGenerics_0.34.0        
-    ## [16] RColorBrewer_1.1-3          viridis_0.6.2               viridisLite_0.4.0          
-    ## [19] cowplot_1.1.1               ggplot2_3.3.6               tidyr_1.2.0                
-    ## [22] dplyr_1.0.9                
+    ## [16] cowplot_1.1.1               RColorBrewer_1.1-3          DescTools_0.99.44          
+    ## [19] viridis_0.6.2               viridisLite_0.4.0           bnstruct_1.0.11            
+    ## [22] igraph_1.2.9                bitops_1.0-7                ggfortify_0.4.13           
+    ## [25] forcats_0.5.1               stringr_1.4.0               dplyr_1.0.9                
+    ## [28] purrr_0.3.4                 readr_2.1.1                 tidyr_1.2.0                
+    ## [31] tibble_3.1.8                ggplot2_3.3.6               tidyverse_1.3.1            
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] colorspace_2.0-3         ellipsis_0.3.2           XVector_0.28.0          
-    ##  [4] rstudioapi_0.13          farver_2.1.1             bit64_4.0.5             
-    ##  [7] fansi_1.0.3              mvtnorm_1.1-3            xml2_1.3.3              
-    ## [10] splines_4.0.2            cachem_1.0.6             geneplotter_1.66.0      
-    ## [13] knitr_1.36               Rsamtools_2.4.0          annotate_1.66.0         
-    ## [16] ashr_2.2-47              dbplyr_2.1.1             compiler_4.0.2          
-    ## [19] httr_1.4.2               assertthat_0.2.1         Matrix_1.3-4            
-    ## [22] fastmap_1.1.0            cli_3.3.0                htmltools_0.5.2         
-    ## [25] prettyunits_1.1.1        tools_4.0.2              coda_0.19-4             
-    ## [28] gtable_0.3.0             glue_1.6.2               GenomeInfoDbData_1.2.3  
-    ## [31] reshape2_1.4.4           rappdirs_0.3.3           Rcpp_1.0.7              
-    ## [34] bbmle_1.0.24             vctrs_0.4.1              Biostrings_2.56.0       
-    ## [37] rtracklayer_1.48.0       xfun_0.28                stringr_1.4.0           
-    ## [40] lifecycle_1.0.1          irlba_2.3.3              XML_3.99-0.8            
-    ## [43] zlibbioc_1.34.0          MASS_7.3-54              scales_1.2.0            
-    ## [46] ragg_1.2.2               hms_1.1.1                yaml_2.2.1              
-    ## [49] curl_4.3.2               memoise_2.0.1            gridExtra_2.3           
-    ## [52] emdbook_1.3.12           biomaRt_2.44.4           bdsmatrix_1.3-4         
-    ## [55] stringi_1.7.6            RSQLite_2.2.8            SQUAREM_2021.1          
-    ## [58] genefilter_1.70.0        BiocParallel_1.22.0      truncnorm_1.0-8         
-    ## [61] systemfonts_1.0.4        rlang_1.0.4              pkgconfig_2.0.3         
-    ## [64] bitops_1.0-7             evaluate_0.14            lattice_0.20-45         
-    ## [67] invgamma_1.1             purrr_0.3.4              GenomicAlignments_1.24.0
-    ## [70] labeling_0.4.2           bit_4.0.4                tidyselect_1.1.2        
-    ## [73] plyr_1.8.6               magrittr_2.0.3           R6_2.5.1                
-    ## [76] generics_0.1.3           DBI_1.1.1                pillar_1.8.0            
-    ## [79] withr_2.5.0              survival_3.3-1           RCurl_1.98-1.5          
-    ## [82] mixsqp_0.3-43            tibble_3.1.8             crayon_1.4.2            
-    ## [85] utf8_1.2.2               BiocFileCache_1.12.1     rmarkdown_2.11          
-    ## [88] progress_1.2.2           locfit_1.5-9.4           grid_4.0.2              
-    ## [91] blob_1.2.2               digest_0.6.29            xtable_1.8-4            
-    ## [94] numDeriv_2016.8-1.1      textshaping_0.3.6        openssl_1.4.5           
-    ## [97] munsell_0.5.0            askpass_1.1
+    ##   [1] readxl_1.3.1             backports_1.4.0          BiocFileCache_1.12.1    
+    ##   [4] plyr_1.8.6               splines_4.0.2            BiocParallel_1.22.0     
+    ##   [7] digest_0.6.29            htmltools_0.5.2          fansi_1.0.3             
+    ##  [10] magrittr_2.0.3           memoise_2.0.1            tzdb_0.2.0              
+    ##  [13] Biostrings_2.56.0        annotate_1.66.0          modelr_0.1.8            
+    ##  [16] bdsmatrix_1.3-4          askpass_1.1              prettyunits_1.1.1       
+    ##  [19] colorspace_2.0-3         blob_1.2.2               rvest_1.0.2             
+    ##  [22] rappdirs_0.3.3           haven_2.4.3              xfun_0.28               
+    ##  [25] crayon_1.4.2             RCurl_1.98-1.5           jsonlite_1.7.2          
+    ##  [28] genefilter_1.70.0        Exact_3.1                survival_3.3-1          
+    ##  [31] glue_1.6.2               gtable_0.3.0             zlibbioc_1.34.0         
+    ##  [34] XVector_0.28.0           scales_1.2.0             mvtnorm_1.1-3           
+    ##  [37] DBI_1.1.1                Rcpp_1.0.7               xtable_1.8-4            
+    ##  [40] progress_1.2.2           emdbook_1.3.12           bit_4.0.4               
+    ##  [43] proxy_0.4-26             httr_1.4.2               ellipsis_0.3.2          
+    ##  [46] pkgconfig_2.0.3          XML_3.99-0.8             farver_2.1.1            
+    ##  [49] dbplyr_2.1.1             locfit_1.5-9.4           utf8_1.2.2              
+    ##  [52] tidyselect_1.1.2         labeling_0.4.2           rlang_1.0.4             
+    ##  [55] reshape2_1.4.4           munsell_0.5.0            cellranger_1.1.0        
+    ##  [58] tools_4.0.2              cachem_1.0.6             cli_3.3.0               
+    ##  [61] generics_0.1.3           RSQLite_2.2.8            broom_0.7.10            
+    ##  [64] evaluate_0.14            fastmap_1.1.0            yaml_2.2.1              
+    ##  [67] knitr_1.36               bit64_4.0.5              fs_1.5.2                
+    ##  [70] rootSolve_1.8.2.3        xml2_1.3.3               biomaRt_2.44.4          
+    ##  [73] compiler_4.0.2           rstudioapi_0.13          curl_4.3.2              
+    ##  [76] e1071_1.7-9              reprex_2.0.1             geneplotter_1.66.0      
+    ##  [79] stringi_1.7.6            highr_0.9                lattice_0.20-45         
+    ##  [82] Matrix_1.3-4             vctrs_0.4.1              pillar_1.8.0            
+    ##  [85] lifecycle_1.0.1          data.table_1.14.2        lmom_2.8                
+    ##  [88] rtracklayer_1.48.0       R6_2.5.1                 gridExtra_2.3           
+    ##  [91] gld_2.6.3                boot_1.3-28              MASS_7.3-54             
+    ##  [94] assertthat_0.2.1         openssl_1.4.5            withr_2.5.0             
+    ##  [97] GenomicAlignments_1.24.0 Rsamtools_2.4.0          GenomeInfoDbData_1.2.3  
+    ## [100] expm_0.999-6             hms_1.1.1                grid_4.0.2              
+    ## [103] coda_0.19-4              class_7.3-19             rmarkdown_2.11          
+    ## [106] bbmle_1.0.24             numDeriv_2016.8-1.1      lubridate_1.8.0
 
 ``` r
 knitr::opts_chunk$set(echo = TRUE)
@@ -168,7 +174,7 @@ colnames(raw) <- c("Gene","Sample","Expression")
 ggplot(raw, aes(x=Sample, y=Expression)) + geom_violin() + theme(axis.text.x = element_text(angle=45, hjust=1))
 ```
 
-![](rnaseq_files/figure-gfm/unnamed-chunk-23-1.png)<!-- -->
+![](rnaseq_files/figure-gfm/unnamed-chunk-7-1.png)<!-- -->
 
 ``` r
 matrix <- reshape2::melt(assay(vsd))
@@ -176,7 +182,7 @@ colnames(matrix) <- c("Gene","Sample","Expression")
 ggplot(matrix, aes(x=Sample, y=Expression)) + geom_violin() + theme(axis.text.x = element_text(angle=45, hjust=1))
 ```
 
-![](rnaseq_files/figure-gfm/unnamed-chunk-23-2.png)<!-- -->
+![](rnaseq_files/figure-gfm/unnamed-chunk-7-2.png)<!-- -->
 
 Generate all volcano plots. We use `ashr` to shrink fold-changes.
 Vertical lines indicate \|log2FC\| \> 0.5. Horizontal lines indicate
@@ -493,6 +499,78 @@ irrelevant pathways (i.e., cancer, viral infection, etc.)
 
 Ran on 5/22/23. These are in files `kegg_02_up.csv`, `kegg_02_down.csv`,
 `kegg_28_up.csv`, and `kegg_28_down.csv`.
+
+``` r
+kegg_02_up = read.csv('../processed_data/degenes/kegg_02_up.csv', header = TRUE) %>% mutate(
+  significance = negative_log10_of_adjusted_p_value, 
+  direction = "up"
+)
+
+kegg_02_down = read.csv('../processed_data/degenes/kegg_02_down.csv', header = TRUE) %>% mutate(
+  significance = -negative_log10_of_adjusted_p_value, 
+  direction = "down"
+)
+
+kegg_28_up = read.csv('../processed_data/degenes/kegg_28_up.csv', header = TRUE) %>% mutate(
+  significance = negative_log10_of_adjusted_p_value, 
+  direction = "up"
+)
+
+kegg_28_down = read.csv('../processed_data/degenes/kegg_28_down.csv', header = TRUE) %>% mutate(
+  significance = -negative_log10_of_adjusted_p_value, 
+  direction = "down"
+)
+
+kegg_02_df = rbind(kegg_02_up, kegg_02_down) %>%
+  filter(!term_name %in% c('Chemical carcinogenesis - DNA adducts',
+                         'Chemical carcinogenesis - receptor activation',
+                         'Drug metabolism - other enzymes',
+                         'Drug metabolism - cytochrome P450',
+                         'Metabolism of xenobiotics by cytochrome P450',
+                         'Measles',
+                         'Hepatitis C',
+                         'Acute myeloid leukemia',
+                         'Staphylococcus aureus infection',
+                         'Epstein-Barr virus infection',
+                         'Coronavirus disease - COVID-19'))
+
+kegg_28_df = rbind(kegg_28_up, kegg_28_down) %>%
+  filter(!term_name %in% c('Human papillomavirus infection',  'Amoebiasis'))
+```
+
+``` r
+kegg_02_df %>%
+  ggplot(aes(y = significance, x = reorder(term_name, -significance))) +
+  geom_bar(aes(fill = direction), stat='identity', color='black', width = 0.75) +
+  scale_fill_manual(values=c('blue', 'red')) +
+  coord_flip() +
+  ylim(-15,15) +
+  theme(legend.position = 'none') +
+  labs(x="", y='-log10(padj)', title='0 vs. 2 weeks WD')
+```
+
+<img src="rnaseq_files/figure-gfm/rna3-1.png" style="display: block; margin: auto;" />
+
+``` r
+#ggsave('../figures/rnaseq_02_kegg.pdf', height = 6, width = 7)
+```
+
+``` r
+kegg_28_df %>%
+  ggplot(aes(y = significance, x = reorder(term_name, -significance))) +
+  geom_bar(aes(fill = direction), stat='identity', color='black', width = 0.75) +
+  scale_fill_manual(values=c('blue', 'red')) +
+  coord_flip() +
+  ylim(-15,15) +
+  theme(legend.position = 'none') +
+  labs(x="", y='-log10(padj)', title='2 vs. 8 weeks WD')
+```
+
+<img src="rnaseq_files/figure-gfm/rna4-1.png" style="display: block; margin: auto;" />
+
+``` r
+#ggsave('../figures/rnaseq_28_kegg.pdf', height = 6, width = 8)
+```
 
 This chunk calculates and writes FPKM measurements for all genes.
 

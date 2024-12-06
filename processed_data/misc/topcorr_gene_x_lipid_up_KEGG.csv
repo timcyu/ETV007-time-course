@@ -1,0 +1,4 @@
+"source","term_name","term_id","highlighted","adjusted_p_value","negative_log10_of_adjusted_p_value","term_size","query_size","intersection_size","effective_domain_size","intersections"
+"KEGG","Focal adhesion","KEGG:04510","false","0.022459290519464166","1.6486039670571269","202","119","10","9330","CDC42,THBS1,PRKCA,SRC,COL4A1,COL6A3,PARVA,COL1A1,COL1A2,PDGFRB"
+"KEGG","AGE-RAGE signaling pathway in diabetic complications","KEGG:04933","false","0.02663426511436016","1.574559281652991","101","119","7","9330","CDC42,PRKCA,COL4A1,CCL2,COL1A1,COL3A1,COL1A2"
+"KEGG","Protein digestion and absorption","KEGG:04974","false","0.040126454373582504","1.396569213403899","108","119","7","9330","COL14A1,COL4A1,COL6A3,COL5A2,COL1A1,COL3A1,COL1A2"

@@ -101,18 +101,23 @@ corr = bicorAndPvalue((RNAseq_mat %>% dplyr::select(-c('ID', 'Treatment'))),
 ```{r}
 gene_x_liver_lipid = createCorrTable(corr, 'Gene', 'Liver_lipid') %>%
   filter(adj_pval < 0.05)
-write.csv(gene_x_liver_lipid, '../processed_data/correlations/gene_x_liver_lipid_adjpval0.05.csv', row.names = FALSE)
+#write.csv(gene_x_liver_lipid, '../processed_data/correlations/gene_x_liver_lipid_adjpval0.05.csv', row.names = FALSE)
 
-top = (gene_x_liver_lipid %>% 
+top_by_rank = append((gene_x_liver_lipid %>% 
   arrange(adj_pval) %>% 
   dplyr::select(Gene) %>% 
   distinct() %>% 
-  head(150))$Gene
+  head(50))$Gene, c('Osbpl3', 'Abcd1', 'Apom', 'Fabp2'))
+
+top_by_corr = (gene_x_liver_lipid %>% 
+  filter(abs(bicor) > 0.8) %>%
+  dplyr::select(Gene) %>% 
+  distinct())$Gene
 ```
 
-Correlate liver lipids -> top 150 RNAseq
+Correlate liver lipids -> top 50 RNAseq
 ```{r, warning=FALSE}
-top_RNAseq_mat = RNAseq_mat %>% dplyr::select(ID, Treatment, all_of(top))
+top_RNAseq_mat = RNAseq_mat %>% dplyr::select(ID, Treatment, all_of(top_by_rank))
 
 # check that order of ID's are the same in both data sets
 assertthat::are_equal(liver_lipids_mat$ID, top_RNAseq_mat$ID)
@@ -125,7 +130,26 @@ corr = bicorAndPvalue((top_RNAseq_mat %>% dplyr::select(-c('ID', 'Treatment'))),
 
 ```{r}
 topgene_x_liver_lipid = createCorrTable(corr, 'Gene', 'Liver_lipid')
-write.csv(topgene_x_liver_lipid, '../processed_data/correlations/top150gene_x_liver_lipid.csv', row.names = FALSE)
+write.csv(topgene_x_liver_lipid, '../processed_data/correlations/top50_gene_x_liver_lipid.csv', row.names = FALSE)
+```
+
+Correlate liver lipids -> top by correlation RNAseq
+```{r, warning=FALSE}
+top_RNAseq_mat = RNAseq_mat %>% dplyr::select(ID, Treatment, all_of(top_by_corr))
+
+# check that order of ID's are the same in both data sets
+assertthat::are_equal(liver_lipids_mat$ID, top_RNAseq_mat$ID)
+
+# correlate (NA's and missing values exist, so warnings expected)
+corr = bicorAndPvalue((top_RNAseq_mat %>% dplyr::select(-c('ID', 'Treatment'))), 
+                      (liver_lipids_mat %>% dplyr::select(-c('ID', 'Treatment')))
+       )
+```
+
+```{r}
+topgene_x_liver_lipid = createCorrTable(corr, 'Gene', 'Liver_lipid')
+write.csv(topgene_x_liver_lipid, '../processed_data/correlations/topbycorr_gene_x_liver_lipid.csv', row.names = FALSE)
+
 rm(gene_x_liver_lipid, liver_lipids_mat, RNAseq_mat, top_RNAseq_mat, topgene_x_liver_lipid)
 ```
 

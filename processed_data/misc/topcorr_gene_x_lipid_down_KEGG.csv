@@ -1,0 +1,2 @@
+"source","term_name","term_id","highlighted","adjusted_p_value","negative_log10_of_adjusted_p_value","term_size","query_size","intersection_size","effective_domain_size","intersections"
+"KEGG","Complement and coagulation cascades","KEGG:04610","false","8.869327311004477e-21","20.052109317732796","93","60","18","9330","VTN,C8B,SERPINF2,PLG,SERPINA1A,CFHR2,C1RA,F11,C8A,SERPINA1D,F10,F7,C3,CFI,SERPINA1E,CFHR1,SERPINC1,SERPINA1C"

@@ -23,32 +23,31 @@ sessionInfo()
     ## [1] stats     graphics  grDevices utils     datasets  methods   base     
     ## 
     ## other attached packages:
-    ##  [1] rmarkdown_2.11     cowplot_1.1.1      RColorBrewer_1.1-3 DescTools_0.99.44 
-    ##  [5] viridis_0.6.2      viridisLite_0.4.0  bnstruct_1.0.11    igraph_1.2.9      
-    ##  [9] bitops_1.0-7       ggfortify_0.4.13   forcats_0.5.1      stringr_1.4.0     
-    ## [13] dplyr_1.0.9        purrr_0.3.4        readr_2.1.1        tidyr_1.2.0       
-    ## [17] tibble_3.1.8       ggplot2_3.3.6      tidyverse_1.3.1   
+    ##  [1] cowplot_1.1.1      RColorBrewer_1.1-3 DescTools_0.99.44  viridis_0.6.2     
+    ##  [5] viridisLite_0.4.0  bnstruct_1.0.11    igraph_1.2.9       bitops_1.0-7      
+    ##  [9] ggfortify_0.4.13   forcats_0.5.1      stringr_1.4.0      dplyr_1.0.9       
+    ## [13] purrr_0.3.4        readr_2.1.1        tidyr_1.2.0        tibble_3.1.8      
+    ## [17] ggplot2_3.3.6      tidyverse_1.3.1   
     ## 
     ## loaded via a namespace (and not attached):
-    ##  [1] fs_1.5.2          lubridate_1.8.0   httr_1.4.2        tools_4.0.2      
-    ##  [5] backports_1.4.0   utf8_1.2.2        R6_2.5.1          DBI_1.1.1        
-    ##  [9] colorspace_2.0-3  withr_2.5.0       tidyselect_1.1.2  gridExtra_2.3    
-    ## [13] Exact_3.1         compiler_4.0.2    textshaping_0.3.6 cli_3.3.0        
-    ## [17] rvest_1.0.2       expm_0.999-6      xml2_1.3.3        labeling_0.4.2   
-    ## [21] scales_1.2.0      mvtnorm_1.1-3     proxy_0.4-26      systemfonts_1.0.4
-    ## [25] digest_0.6.29     pkgconfig_2.0.3   htmltools_0.5.2   dbplyr_2.1.1     
-    ## [29] fastmap_1.1.0     highr_0.9         rlang_1.0.4       readxl_1.3.1     
-    ## [33] rstudioapi_0.13   generics_0.1.3    farver_2.1.1      jsonlite_1.7.2   
-    ## [37] magrittr_2.0.3    Matrix_1.3-4      Rcpp_1.0.7        munsell_0.5.0    
-    ## [41] fansi_1.0.3       lifecycle_1.0.1   stringi_1.7.6     yaml_2.2.1       
-    ## [45] MASS_7.3-54       rootSolve_1.8.2.3 plyr_1.8.6        grid_4.0.2       
-    ## [49] crayon_1.4.2      lmom_2.8          lattice_0.20-45   haven_2.4.3      
-    ## [53] hms_1.1.1         knitr_1.36        pillar_1.8.0      boot_1.3-28      
-    ## [57] gld_2.6.3         reshape2_1.4.4    reprex_2.0.1      glue_1.6.2       
-    ## [61] evaluate_0.14     data.table_1.14.2 modelr_0.1.8      vctrs_0.4.1      
-    ## [65] tzdb_0.2.0        cellranger_1.1.0  gtable_0.3.0      assertthat_0.2.1 
-    ## [69] xfun_0.28         broom_0.7.10      e1071_1.7-9       ragg_1.2.2       
-    ## [73] class_7.3-19      ellipsis_0.3.2
+    ##  [1] httr_1.4.2        jsonlite_1.7.2    modelr_0.1.8      assertthat_0.2.1 
+    ##  [5] expm_0.999-6      gld_2.6.3         lmom_2.8          cellranger_1.1.0 
+    ##  [9] yaml_2.2.1        pillar_1.8.0      backports_1.4.0   lattice_0.20-45  
+    ## [13] glue_1.6.2        digest_0.6.29     rvest_1.0.2       colorspace_2.0-3 
+    ## [17] htmltools_0.5.2   Matrix_1.3-4      pkgconfig_2.0.3   broom_0.7.10     
+    ## [21] haven_2.4.3       mvtnorm_1.1-3     scales_1.2.0      rootSolve_1.8.2.3
+    ## [25] tzdb_0.2.0        proxy_0.4-26      farver_2.1.1      generics_0.1.3   
+    ## [29] ellipsis_0.3.2    withr_2.5.0       cli_3.3.0         magrittr_2.0.3   
+    ## [33] crayon_1.4.2      readxl_1.3.1      evaluate_0.14     fs_1.5.2         
+    ## [37] fansi_1.0.3       MASS_7.3-54       xml2_1.3.3        class_7.3-19     
+    ## [41] tools_4.0.2       data.table_1.14.2 hms_1.1.1         lifecycle_1.0.1  
+    ## [45] Exact_3.1         munsell_0.5.0     reprex_2.0.1      compiler_4.0.2   
+    ## [49] e1071_1.7-9       rlang_1.0.4       grid_4.0.2        rstudioapi_0.13  
+    ## [53] labeling_0.4.2    rmarkdown_2.11    boot_1.3-28       gtable_0.3.0     
+    ## [57] DBI_1.1.1         R6_2.5.1          gridExtra_2.3     lubridate_1.8.0  
+    ## [61] knitr_1.36        fastmap_1.1.0     utf8_1.2.2        stringi_1.7.6    
+    ## [65] Rcpp_1.0.7        vctrs_0.4.1       dbplyr_2.1.1      tidyselect_1.1.2 
+    ## [69] xfun_0.28
 
 ``` r
 knitr::opts_chunk$set(echo = TRUE)
@@ -365,24 +364,43 @@ for (lipid1 in lipids_in_common) {
   }
 }
 
+df = df %>% filter(Lipid_liver == Lipid_plasma)
+print(df)
+```
+
+    ##        Lipid_liver Lipid_plasma Spearman_corr        p_val
+    ## cor             CE           CE    0.71549437 2.766110e-10
+    ## cor12          Cer          Cer    0.70683515 5.621805e-10
+    ## cor24           DG           DG   -0.01350867 9.198331e-01
+    ## cor36           FA           FA    0.23510071 7.565230e-02
+    ## cor48       HexCER       HexCER    0.64685887 4.113040e-08
+    ## cor60          LPC          LPC    0.63532860 8.445839e-08
+    ## cor72          LPE          LPE    0.09799739 4.642641e-01
+    ## cor84       LacCER       LacCER    0.40028149 7.217077e-02
+    ## cor96           PC           PC    0.49167729 8.872032e-05
+    ## cor108          SM           SM    0.07739667 5.636210e-01
+    ## cor120          TG           TG   -0.21837782 9.958776e-02
+
+``` r
 # save dataframe
 write.csv(df, '../processed_data/misc/liver_plasma_lipid_class_pairwise_corr.csv', row.names=FALSE)
 
 df %>%
-  ggplot(aes(x=Lipid_liver, y=Lipid_plasma)) +
-  geom_tile(aes(fill=Spearman_corr), alpha=1, color='black', size=0.1) +
-  scale_fill_gradient2(low = "#0000FF", mid = "#FFFFFF", high ="#FF0000", midpoint=0) +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  ggplot(aes(x=Spearman_corr, y=reorder(Lipid_liver, Spearman_corr))) +
+  geom_bar(aes(fill=Lipid_liver), stat="identity", alpha=1, color='black', size=0.1) +
+  scale_fill_manual(values=colors) +
+  labs(x='Spearman correlation', y='Lipid class') +
+  theme(legend.position = 'none')
 ```
 
 <img src="lipidomics_files/figure-gfm/lipid10-1.png" style="display: block; margin: auto;" />
 
 ``` r
-#ggsave('../figures/lipidomics_plasma_liver_total_corr_heatmap.pdf', height = 4, width = 6)
+#ggsave('../figures/lipidomics_plasma_liver_corr_barplot.pdf', height = 7.5, width = 5.5)
 ```
 
 ``` r
 # rmarkdown::render("lipidomics.Rmd")
-# mv lipidomics.Rmd ../markdowns/
+# mv lipidomics.md ../markdowns/
 # mv lipidomics_files ../markdowns/
 ```
