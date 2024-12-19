@@ -1,15 +1,32 @@
-# ETV007-time-course
+# Integrated systems resource to understand temporal adaptations to Western diet feeding
 
-(Authors go here)
-
-## Abstract
-(Abstract goes here)
+This repository contains code and data for reproducing the results in the manuscript.
 
 ## Repository outline
-- [src](https://github.com/timcyu/ETV007-time-course/tree/master/src) contains R Markdown notebooks for analyzing data and generating figures.
-- [raw_data](https://github.com/timcyu/ETV007-time-course/tree/master/raw_data) contains lipidomics, bile acids, microbiome, and RNA-seq count datasets.
-- [processed_data](https://github.com/timcyu/ETV007-time-course/tree/master/processed_data) contains processed datasets and lists of differentially expressed genes.
-- [figures](https://github.com/timcyu/ETV007-time-course/tree/master/figures) contains all figures in the paper.
+- [src](https://github.com/timcyu/ETV007-time-course/tree/master/src) contains R Markdown notebooks for reproducing analyses.
+- [processed_data](https://github.com/timcyu/ETV007-time-course/tree/master/processed_data) contains input datasets for notebooks and outputted results.
+- [figures](https://github.com/timcyu/ETV007-time-course/tree/master/figures) contains figures produced by notebooks.
+- [markdowns](https://github.com/timcyu/ETV007-time-course/tree/main/markdowns) contains rendered versions of R Markdown notebooks that are easier to read.
 
-## Citation
-(Citation goes here)
+## Software requirements
+
+All analyses were performed using `R version 4.0.2` and tested under `macOS Catalina 10.15.7`. 
+
+The following packages are required.
+```
+tidyverse
+ggfortify
+cowplot
+viridis
+RColorBrewer
+bnstruct
+DescTools
+WGCNA
+phyloseq
+DESeq2
+GenomicFeatures
+apeglm
+EnhancedVolcano
+```
+
+
